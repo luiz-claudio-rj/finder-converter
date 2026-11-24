@@ -93,6 +93,13 @@ SEM_JANELA=1 FORMATO="MP4 (H.264)" VELOCIDADE="Rápida" ./converter.sh video.mov
 | `VERSION` | Versão atual. A fórmula fica em [luiz-claudio-rj/homebrew-tap](https://github.com/luiz-claudio-rj/homebrew-tap). |
 | `docs/` | Página do projeto (GitHub Pages). |
 
+## Apoie
+
+O Converter é grátis e vai continuar assim. Se ele te ajudou, você pode agradecer com qualquer valor:
+
+- **Pix**: chave aleatória `a25659b7-1c09-4fa6-905a-9b8ecd2c68b1` (Luiz Claudio), ou pelo QR Code na [página do projeto](https://luiz-claudio-rj.github.io/finder-converter/#apoie);
+- **GitHub Sponsors**: [github.com/sponsors/luiz-claudio-rj](https://github.com/sponsors/luiz-claudio-rj), com apoio único ou mensal.
+
 ## Licença
 
 [MIT](LICENSE). Usa [FFmpeg](https://ffmpeg.org) e [libwebp](https://developers.google.com/speed/webp), instalados pelo Homebrew. Não é afiliado à Apple.
