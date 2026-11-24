@@ -11,6 +11,7 @@
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 zmodload zsh/mathfunc   # int() nas contas do limite de tamanho
 LOG="$HOME/Library/Logs/Converter.log"
+mkdir -p "${LOG:h}" 2>/dev/null   # sem a pasta, o redirecionamento para o log falha e a conversão nem começa
 PREFS="$HOME/Library/Application Support/Converter"
 
 (( $# == 0 )) && exit 0
