@@ -372,6 +372,9 @@ ObjC.registerSubclass({
       sair();
     } },
     'fechar:': { types: ['void', ['id']], implementation: function (b) { sair(); } },
+    'apoiar:': { types: ['void', ['id']], implementation: function (b) {
+      $.NSWorkspace.sharedWorkspace.openURL($.NSURL.URLWithString('https://luiz-claudio-rj.github.io/finder-converter/#apoie'));
+    } },
     'tick:': { types: ['void', ['id']], implementation: function (t) { tick(t); } },
   },
 });
@@ -405,6 +408,13 @@ function tick(timer) {
     if (temSaida) {
       const bMostrar = botao('Mostrar no Finder', 'mostrar:', W - 280, 156);
       bMostrar.keyEquivalent = '\r';
+      // link discreto, sem pop-up: só aparece quando a conversão deu certo
+      const bApoiar = $.NSButton.buttonWithTitleTargetAction('♥ Apoiar o projeto', ctl, 'apoiar:');
+      bApoiar.bordered = false;
+      bApoiar.font = $.NSFont.systemFontOfSize(12);
+      bApoiar.contentTintColor = $.NSColor.secondaryLabelColor;
+      bApoiar.frame = $.NSMakeRect(14, 16, 150, 24);
+      v.addSubview(bApoiar);
     }
     const som = $.NSSound.soundNamed('Glass'); if (!som.isNil()) som.play;
     $.NSFileManager.defaultManager.removeItemAtPathError(ST, null);
