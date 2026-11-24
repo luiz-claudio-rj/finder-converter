@@ -16,7 +16,7 @@ Grátis, de código aberto e sem enviar nada para a internet.
 | Imagem (HEIC, PNG, JPG, TIFF, WebP…) | JPG, PNG, WebP, HEIC, AVIF, PDF |
 
 - **Limite de tamanho do arquivo**: 8 MB (Discord), 16 MB (WhatsApp), 25 MB (e-mail), 50 MB, 100 MB ou um valor seu. O vídeo é comprimido em duas passadas para caber no limite; se a taxa ficar baixa demais, a resolução é reduzida sozinha e a janela avisa.
-- **Velocidade Rápida**: usa o codificador de vídeo do chip do Mac (VideoToolbox) em MP4 e MOV. Num M1, foi de 4 a 8 vezes mais rápido nos testes, com arquivo um pouco maior. Se o chip não estiver disponível, segue com a conversão normal.
+- **Velocidade Rápida**: usa o codificador de vídeo do chip do Mac (VideoToolbox) em MP4 e MOV. Num M1, um vídeo de 20 s do iPhone ficou pronto em 14 s, contra 32 s (H.264) e 50 s (HEVC) no modo normal, com arquivo de tamanho parecido. Se o chip não estiver disponível, segue com a conversão normal.
 - **Resolução / tamanho**: vídeo em 4K, 1080p, 720p ou 480p; imagem pelo lado maior (4096 a 512 px). Nunca aumenta um arquivo menor.
 - **Qualidade**: alta, média ou baixa (arquivo menor). Formatos sem perda (WAV, FLAC, PNG, PDF) usam sempre a máxima.
 - **Vídeo HDR do iPhone**: detecta o HDR e ajusta as cores para SDR com o `avconvert` da Apple antes de converter, para o vídeo não sair lavado. Ignora a trilha de áudio espacial (APAC), que o ffmpeg não lê.
