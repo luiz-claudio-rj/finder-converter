@@ -38,26 +38,19 @@ if (( $#faltando )); then
 fi
 verde "ffmpeg, ffprobe e cwebp encontrados"
 
-# 2. Script principal. Pelo Homebrew vira um atalho para a versão do brew, assim
-#    "brew upgrade" atualiza o Converter sem precisar rodar o setup de novo.
-mkdir -p "$DESTINO"
-rm -f "$DESTINO/converter.sh"
-if [[ -n $CONVERTER_BREW_LIBEXEC ]]; then
-  ln -s "$CONVERTER_BREW_LIBEXEC/converter.sh" "$DESTINO/converter.sh"
-  verde "Script ligado à versão do Homebrew"
-else
-  cp converter.sh "$DESTINO/converter.sh"
-  chmod +x "$DESTINO/converter.sh"
-  verde "Script instalado em ~/Library/Application Support/Converter"
-fi
-
-# 3. Ação Rápida (remove versões antigas, inclusive a que embutia o script)
+# 2. Ação Rápida, com o script dentro dela (Contents/Resources). Remove versões antigas:
+#    a que embutia o script e o script solto em Application Support.
 mkdir -p "$SERVICOS"
 rm -rf "$SERVICOS/Converter.workflow" "$SERVICOS/Converter….workflow"
 cp -R workflow/Converter.workflow "$SERVICOS/"
+mkdir -p "$SERVICOS/Converter.workflow/Contents/Resources"
+cp converter.sh "$SERVICOS/Converter.workflow/Contents/Resources/converter.sh"
+chmod +x "$SERVICOS/Converter.workflow/Contents/Resources/converter.sh"
+rm -f "$DESTINO/converter.sh"   # as preferências da janela continuam em $DESTINO
 verde "Ação Rápida instalada em ~/Library/Services/Converter.workflow"
 
-# 4. Liga a ação no menu de contexto e nas Ações Rápidas do Finder
+
+# 3. Liga a ação no menu de contexto e nas Ações Rápidas do Finder
 defaults write pbs NSServicesStatus -dict-add "\"$CHAVE\"" \
   '<dict><key>presentation_modes</key><dict>
      <key>ContextMenu</key><true/><key>FinderPreview</key><true/>
@@ -67,7 +60,7 @@ defaults write pbs NSServicesStatus -dict-add "\"$CHAVE\"" \
 /System/Library/CoreServices/pbs -update >/dev/null 2>&1 || true
 verde "Ação ativada no Finder"
 
-# 5. O Finder só lê a lista de ações ao abrir
+# 4. O Finder só lê a lista de ações ao abrir
 killall Finder 2>/dev/null || true
 verde "Finder reiniciado"
 

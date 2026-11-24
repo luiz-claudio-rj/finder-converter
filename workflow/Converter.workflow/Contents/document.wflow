@@ -59,13 +59,15 @@
 				<key>ActionParameters</key>
 				<dict>
 					<key>COMMAND_STRING</key>
-					<string># Converter… — chama o script instalado pelo install.sh (github.com/luiz-claudio-rj/finder-converter)
-CONV="$HOME/Library/Application Support/Converter/converter.sh"
-if [[ ! -x "$CONV" ]]; then
-  osascript -e 'display alert "Converter" message "O script converter.sh não foi encontrado. Rode o install.sh de novo."'
-  exit 1
-fi
-exec "$CONV" "$@"
+					<string># Converter… — Ação Rápida do Finder (github.com/luiz-claudio-rj/finder-converter)
+# O script fica dentro desta Ação Rápida (Contents/Resources). O caminho antigo, em
+# Application Support, continua valendo para quem instalou versões anteriores.
+for CONV in "$HOME/Library/Services/Converter.workflow/Contents/Resources/converter.sh" \
+            "$HOME/Library/Application Support/Converter/converter.sh"; do
+  [[ -x "$CONV" ]] &amp;&amp; exec "$CONV" "$@"
+done
+osascript -e 'display alert "Converter" message "O script converter.sh não foi encontrado. Reinstale o Converter."'
+exit 1
 </string>
 					<key>CheckedForUserDefaultShell</key>
 					<true/>

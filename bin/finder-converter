@@ -1,31 +1,48 @@
 #!/bin/zsh
-# finder-converter — comando instalado pelo Homebrew.
-#   finder-converter setup      liga a Ação Rápida "Converter…" no Finder (rodar uma vez)
-#   finder-converter remove     tira a ação do Finder
+# finder-converter — comando instalado junto com o Converter pelo Homebrew.
+#   finder-converter setup      confere se "Converter…" está ligado no Finder (e liga, se não estiver)
 #   finder-converter --version  mostra a versão
+#
+# Desde a v1.3.0 o Homebrew instala o Converter como cask, que já coloca a Ação Rápida no
+# Finder sozinho. O "setup" continua existindo para quem segue instruções antigas.
 
-LIBEXEC="${0:A:h:h}/libexec"
-# Caminho estável entre versões: .../Cellar/finder-converter/<versão>/libexec → .../opt/finder-converter/libexec
-OPT_LIBEXEC=$(print -r -- "$LIBEXEC" | sed -E 's#/Cellar/finder-converter/[^/]+/libexec$#/opt/finder-converter/libexec#')
-[[ -d $OPT_LIBEXEC ]] || OPT_LIBEXEC=$LIBEXEC
+RAIZ="${0:A:h:h}"
+CHAVE="(null) - Converter… - runWorkflowAsService"   # nome que o macOS usa para ligar/desligar a ação
+ACAO="$HOME/Library/Services/Converter.workflow"
+
+ligar() {
+  defaults write pbs NSServicesStatus -dict-add "\"$CHAVE\"" \
+    '<dict><key>presentation_modes</key><dict>
+       <key>ContextMenu</key><true/><key>FinderPreview</key><true/>
+       <key>ServicesMenu</key><true/><key>TouchBar</key><false/>
+     </dict></dict>'
+  /System/Library/CoreServices/pbs -update >/dev/null 2>&1
+}
 
 case $1 in
   setup|install)
-    CONVERTER_BREW_LIBEXEC="$OPT_LIBEXEC" exec zsh "$LIBEXEC/install.sh" ;;
+    if [[ -x $ACAO/Contents/Resources/converter.sh ]]; then
+      ligar
+      print -P "%F{green}✓%f O Converter já está instalado e ligado no Finder."
+      echo "Clique com o botão direito em um vídeo, áudio ou imagem → Ações Rápidas → Converter…"
+      echo "Se não aparecer: botão direito → Ações Rápidas → Personalizar… e ligue \"Converter…\"."
+    else
+      echo "A Ação Rápida não está em ~/Library/Services. Reinstale com:"
+      echo "  brew reinstall --cask luiz-claudio-rj/tap/finder-converter"
+      exit 1
+    fi ;;
   remove|uninstall)
-    exec zsh "$LIBEXEC/uninstall.sh" ;;
+    echo "Para remover o Converter, use: brew uninstall finder-converter" ;;
   -v|--version|version)
-    print -r -- "finder-converter $(<"$LIBEXEC/VERSION")" ;;
+    print -r -- "finder-converter $(<"$RAIZ/VERSION")" ;;
   *)
     cat <<USO
 Uso: finder-converter <comando>
 
-  setup       liga "Converter…" no Finder (botão direito → Ações Rápidas)
-  remove      tira a ação do Finder
+  setup       confere se "Converter…" está ligado no Finder
   --version   mostra a versão
 
-Depois do setup, clique com o botão direito em um vídeo, áudio ou imagem
-e escolha Ações Rápidas → Converter…
+No Finder: botão direito em um vídeo, áudio ou imagem → Ações Rápidas → Converter…
 USO
     [[ -z $1 || $1 == (-h|--help|help) ]] ;;
 esac
