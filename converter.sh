@@ -469,7 +469,7 @@ duracao_us() {
   [[ $d == <->(.<->|) ]] && printf '%.0f' $(( d * 1000000 )) || echo 0
 }
 
-mb() { awk -v b="$1" 'BEGIN { if (b >= 1048576) printf "%.1f MB", b/1048576; else printf "%d KB", (b+1023)/1024 }'; }
+mb() { awk -v b="$1" 'BEGIN { if (b >= 1000000) { s = sprintf("%.1f MB", b/1000000); sub(/\./, ",", s); print s } else printf "%d KB\n", (b+999)/1000 }'; }   # unidades do Finder (1 MB = 1.000.000 bytes)
 
 # Cada arquivo passa por 1 ou mais passos (ex.: vídeo HDR = ajustar cores + converter).
 # passo <n> "<descrição>" [porcentagem]  → anuncia "Passo n de N: descrição" na janela
@@ -607,7 +607,7 @@ orcamento_limite() {
   local dur_us; dur_us=$(duracao_us "$1")
   (( dur_us > 0 )) || { MOTIVO="Não foi possível ler a duração do vídeo."; return 1; }
   # total em kbit/s, com 4% de folga para o contêiner
-  local total=$(( LIM_MB * 1048576 * 8 * 0.96 / 1000.0 / (dur_us / 1000000.0) ))
+  local total=$(( LIM_MB * 1000000 * 8 * 0.96 / 1000.0 / (dur_us / 1000000.0) ))
   local tem_audio
   tem_audio=$(probe -select_streams a:0 -show_entries stream=index -of csv=p=0 "$1" 2>/dev/null)
   ORC_A=0
@@ -625,7 +625,7 @@ orcamento_limite() {
 converter_limitado() {
   local in="$1" out="$2"
   local B=$(( PASSOS - 2 ))                         # passos anteriores (ajuste de cores do HDR)
-  local alvo_bytes=$(( int(LIM_MB * 1048576) ))
+  local alvo_bytes=$(( int(LIM_MB * 1000000) ))
   orcamento_limite "$in" || return 1
   local v=$ORC_V a=$ORC_A
 
