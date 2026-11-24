@@ -382,14 +382,20 @@ destino() {
   echo "$out"
 }
 
-# ffprobe só pode abrir arquivos locais (nada de URL escondida dentro de um "vídeo").
-probe() { ffprobe -v error -protocol_whitelist file "${@[1,-2]}" "file:${@[-1]}"; }
-
 # Um arquivo com extensão de vídeo pode ser, na verdade, uma playlist (HLS, concat…) que
-# faz o ffmpeg ler outros arquivos ou endereços. Esses formatos são recusados.
+# faz o ffmpeg ler outros arquivos ou endereços. Por isso o ffprobe e o ffmpeg só abrem
+# arquivos locais (-protocol_whitelist) e só com os leitores de formato desta lista
+# (-format_whitelist). Qualquer outro formato é recusado pelas duas ferramentas.
+#   mov = MOV/MP4/M4A/3GP · matroska = MKV/WebM · asf = WMV/WMA · mpeg/mpegts = MPG/TS/MTS
+FORMATOS_OK="mov,matroska,avi,asf,flv,mpeg,mpegts,gif,mp3,wav,aiff,flac,ogg,caf,aac"
+SEGURO=(-protocol_whitelist file -format_whitelist "$FORMATOS_OK")
+
+probe() { ffprobe -v error $SEGURO "${@[1,-2]}" "file:${@[-1]}"; }
+
+# Só segue se o ffprobe conseguiu ler o arquivo com um dos formatos permitidos.
 entrada_segura() {
   local fmt; fmt=$(probe -show_entries format=format_name -of default=nw=1:nk=1 "$1" 2>/dev/null)
-  [[ -n $fmt && $fmt != *(hls|applehttp|concat|m3u|dash|ffmetadata|lavfi|tty|data)* ]]
+  [[ -n $fmt ]]
 }
 
 duracao_us() {
@@ -431,7 +437,7 @@ acompanha_ffmpeg() {
 
 # Roda o ffmpeg em segundo plano para poder encerrá-lo na hora se o usuário cancelar.
 ff() {
-  ffmpeg -nostdin -hide_banner -loglevel error -nostats -progress pipe:1 -y -protocol_whitelist file -i "file:$in" "$@" > >(acompanha_ffmpeg) &
+  ffmpeg -nostdin -hide_banner -loglevel error -nostats -progress pipe:1 -y $SEGURO -i "file:$in" "$@" > >(acompanha_ffmpeg) &
   local pid=$!
   while kill -0 $pid 2>/dev/null; do
     cancelado && { kill -9 $pid 2>/dev/null; break; }   # o arquivo parcial é apagado depois
