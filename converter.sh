@@ -382,8 +382,18 @@ destino() {
   echo "$out"
 }
 
+# ffprobe só pode abrir arquivos locais (nada de URL escondida dentro de um "vídeo").
+probe() { ffprobe -v error -protocol_whitelist file "${@[1,-2]}" "file:${@[-1]}"; }
+
+# Um arquivo com extensão de vídeo pode ser, na verdade, uma playlist (HLS, concat…) que
+# faz o ffmpeg ler outros arquivos ou endereços. Esses formatos são recusados.
+entrada_segura() {
+  local fmt; fmt=$(probe -show_entries format=format_name -of default=nw=1:nk=1 "$1" 2>/dev/null)
+  [[ -n $fmt && $fmt != *(hls|applehttp|concat|m3u|dash|ffmetadata|lavfi|tty|data)* ]]
+}
+
 duracao_us() {
-  local d; d=$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$1" 2>/dev/null)
+  local d; d=$(probe -show_entries format=duration -of default=nw=1:nk=1 "$1" 2>/dev/null)
   [[ $d == <->(.<->|) ]] && printf '%.0f' $(( d * 1000000 )) || echo 0
 }
 
@@ -421,7 +431,7 @@ acompanha_ffmpeg() {
 
 # Roda o ffmpeg em segundo plano para poder encerrá-lo na hora se o usuário cancelar.
 ff() {
-  ffmpeg -nostdin -hide_banner -loglevel error -nostats -progress pipe:1 -y -i "$in" "$@" > >(acompanha_ffmpeg) &
+  ffmpeg -nostdin -hide_banner -loglevel error -nostats -progress pipe:1 -y -protocol_whitelist file -i "file:$in" "$@" > >(acompanha_ffmpeg) &
   local pid=$!
   while kill -0 $pid 2>/dev/null; do
     cancelado && { kill -9 $pid 2>/dev/null; break; }   # o arquivo parcial é apagado depois
@@ -437,7 +447,7 @@ ff() {
 escala_video() {
   (( ALVO )) || return
   local dims w h
-  dims=( $(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of default=nw=1:nk=1 "$1" 2>/dev/null) )
+  dims=( $(probe -select_streams v:0 -show_entries stream=width,height -of default=nw=1:nk=1 "$1" 2>/dev/null) )
   w=$dims[1]; h=$dims[2]
   [[ $w == <-> && $h == <-> ]] || return
   (( (w < h ? w : h) > ALVO )) || return
@@ -500,7 +510,7 @@ converter() {
 # Nesse caso o avconvert da Apple gera antes uma cópia SDR, que o ffmpeg então converte.
 eh_hdr() {
   local trc
-  trc=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_transfer -of default=nw=1:nk=1 "$1" 2>/dev/null)
+  trc=$(probe -select_streams v:0 -show_entries stream=color_transfer -of default=nw=1:nk=1 "$1" 2>/dev/null)
   trc=${trc%%[,[:space:]]*}
   [[ $trc == arib-std-b67 || $trc == smpte2084 ]]
 }
@@ -527,6 +537,9 @@ for f in "$@"; do
   [[ -f $f ]] || { (( pulados++ )); continue; }
   # GIF é tratado como vídeo; "outro" e categorias diferentes da escolhida são pulados.
   if [[ $(categoria "$f") != $cat_alvo ]]; then (( pulados++ )); continue; fi
+  if [[ $cat_alvo != imagem ]] && ! entrada_segura "$f"; then
+    (( falhas++ )); print -r -- "$(date '+%F %T') recusado (não é um arquivo de mídia comum): $f" >> "$LOG"; continue
+  fi
   out=$(destino "$f")
   TITULO="${f:t} → ${out:t}"
   ARQ=""; (( total > 1 )) && ARQ="arquivo $i de $total"
@@ -583,7 +596,10 @@ fi
 
 terminou=1
 if [[ -n $SEM_JANELA ]]; then
-  [[ -n $SEM_AVISO ]] || osascript -e "display notification \"$det\" with title \"Converter\" subtitle \"$tit\" sound name \"Glass\"" >/dev/null
+  # textos vão como argumentos, nunca dentro do código AppleScript (nome de arquivo pode ter aspas)
+  [[ -n $SEM_AVISO ]] || osascript -e 'on run argv' \
+    -e 'display notification (item 1 of argv) with title "Converter" subtitle (item 2 of argv) sound name "Glass"' \
+    -e 'end run' -- "$det" "$tit" >/dev/null
   rm -f "$ST" "$SAIDAS" "$CANCEL"
 else
   estado "FIM|$tit|$det"
