@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Converter: converta vídeo, áudio e imagem com o botão direito no Mac (grátis)</title>
-<meta name="description" content="Converta MP4, MOV, MP3, HEIC, WebP, GIF e mais direto do Finder: botão direito, Ações Rápidas, Converter. Grátis, código aberto, sem upload e com cores certas em vídeos HDR do iPhone.">
-<meta name="keywords" content="converter vídeo mac, converter MOV para MP4, converter HEIC para JPG, converter para WebP, ação rápida finder, ffmpeg mac, comprimir vídeo iphone, conversor gratuito mac">
+<meta name="description" content="Converta e comprima MP4, MOV, MP3, HEIC, WebP, GIF e mais direto do Finder: botão direito, Converter. Limite de 16 MB para o WhatsApp, modo rápido com o chip do Mac e cores certas no vídeo do iPhone. Grátis e sem upload.">
+<meta name="keywords" content="converter vídeo mac, comprimir vídeo para whatsapp, converter MOV para MP4, converter HEIC para JPG, converter para WebP, ação rápida finder, ffmpeg mac, comprimir vídeo iphone, conversor gratuito mac, homebrew">
 <link rel="canonical" href="https://luiz-claudio-rj.github.io/finder-converter/">
 <meta name="theme-color" content="#1F2B52">
 <meta name="color-scheme" content="light">
@@ -54,6 +54,9 @@
     "Converte áudio para MP3, M4A, WAV, FLAC e OGG",
     "Converte imagem para JPG, PNG, WebP, HEIC, AVIF e PDF",
     "Reduz vídeo para 4K, 1080p, 720p ou 480p e imagem por pixels",
+    "Limite de tamanho do arquivo: 8 MB, 16 MB (WhatsApp), 25 MB (e-mail) ou outro valor",
+    "Modo rápido com o codificador de vídeo do chip do Mac",
+    "Instalação pelo Homebrew, com o ffmpeg incluído",
     "Três níveis de qualidade",
     "Corrige as cores de vídeos HDR do iPhone",
     "Janela de progresso com passos, tempo restante e cancelar"
@@ -71,6 +74,10 @@
       "acceptedAnswer": { "@type": "Answer", "text": "Não. Tudo roda no seu Mac com ffmpeg e ferramentas do próprio macOS. Nenhum arquivo sai do computador." } },
     { "@type": "Question", "name": "Como converter MOV do iPhone para MP4 sem as cores lavadas?",
       "acceptedAnswer": { "@type": "Answer", "text": "Clique com o botão direito no vídeo, escolha Ações Rápidas, Converter e o formato MP4. O Converter detecta vídeo HDR e ajusta as cores para SDR com o conversor da própria Apple antes de converter." } },
+    { "@type": "Question", "name": "Como diminuir um vídeo para mandar no WhatsApp?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No Converter, escolha MP4 e o limite 16 MB (WhatsApp). O vídeo é comprimido em duas passadas para ficar abaixo de 16 MB; se for longo, a resolução é reduzida automaticamente." } },
+    { "@type": "Question", "name": "Como instalar o Converter com o Homebrew?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Rode brew install luiz-claudio-rj/tap/finder-converter e depois finder-converter setup. O Homebrew instala o ffmpeg junto, se ele ainda não estiver no Mac." } },
     { "@type": "Question", "name": "Funciona em Mac com chip Intel e Apple Silicon?",
       "acceptedAnswer": { "@type": "Answer", "text": "Foi feito para os dois, do macOS 13 Ventura em diante, e testado no macOS 26. Precisa do Homebrew para instalar o ffmpeg; o instalador cuida do resto." } },
     { "@type": "Question", "name": "O arquivo original é alterado?",
@@ -157,7 +164,7 @@ h1 {
 .light { width: 12px; height: 12px; border-radius: 50%; }
 .light.r { background: #FF5F57; } .light.y { background: #FEBC2E; } .light.g { background: #28C840; }
 .titlebar b { margin-left: 10px; font-weight: 600; color: #3a3a3c; }
-.finder-body { display: grid; grid-template-columns: 130px 1fr; min-height: 300px; }   /* cabe a janela de opções */
+.finder-body { display: grid; grid-template-columns: 130px 1fr; min-height: 360px; }   /* cabe a janela de opções */
 .sidebar { background: #F6F6F8; border-right: 1px solid #E6E6EA; padding: 12px 10px; color: #6e6e73; font-size: 12px; }
 .sidebar span { display: block; padding: 4px 6px; border-radius: 5px; }
 .sidebar span.on { background: #E1E1E6; color: #1d1d1f; }
@@ -303,7 +310,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
 @media (max-width: 520px) {
   section { padding: 64px 0; }
   .hero { padding-bottom: 64px; }
-  .finder-body { grid-template-columns: 1fr; }
+  .finder-body { grid-template-columns: 1fr; min-height: 500px; }
   .sidebar { display: none; }
   .file-head, .file { grid-template-columns: 1fr 64px; }
   .file-head > span:last-child, .file > span:last-child { display: none; }
@@ -393,7 +400,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <h3>Vídeo</h3>
         <p>De MOV, MKV, AVI, WebM, GIF e outros para:</p>
         <ul class="chips"><li>MP4 (H.264)</li><li>MP4 comprimido (HEVC)</li><li>MOV</li><li>WebM</li><li>GIF</li><li>MP3 só o áudio</li><li>M4A só o áudio</li></ul>
-        <dl><dt>Tamanho</dt><dd>Original, 4K, 1080p, 720p ou 480p. Nunca aumenta um vídeo menor.</dd></dl>
+        <dl><dt>Limite do arquivo</dt><dd>16 MB para o WhatsApp, 25 MB para e-mail ou o valor que você quiser.</dd>
+          <dt>Resolução</dt><dd>Original, 4K, 1080p, 720p ou 480p. Nunca aumenta um vídeo menor.</dd></dl>
       </div>
       <div style="--c: var(--audio)">
         <h3>Áudio</h3>
@@ -434,6 +442,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <div><h3>Você vê o que está acontecendo</h3><p>Uma janela mostra o passo atual, a porcentagem e quanto falta. Dá para cancelar a qualquer momento, sem deixar arquivo pela metade.</p></div>
       <div><h3>O original nunca é tocado</h3><p>O arquivo novo aparece ao lado do original. Se o nome já existir, ganha um número: <code>foto (1).jpg</code>.</p></div>
       <div><h3>Lembra do que você escolheu</h3><p>Formato, tamanho e qualidade ficam salvos para cada tipo de arquivo. Na próxima vez, é só clicar em Converter.</p></div>
+      <div><h3>Cabe no WhatsApp e no e-mail</h3><p>Escolha um limite, como 16 MB, e o vídeo sai abaixo dele. Se for longo, a resolução diminui sozinha e a janela avisa.</p></div>
+      <div><h3>Rápido com o chip do Mac</h3><p>A velocidade Rápida usa o codificador de vídeo do próprio Mac. Num M1, converteu de 4 a 8 vezes mais rápido nos testes.</p></div>
     </div>
   </div>
 </section>
@@ -446,16 +456,16 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <li>
         <div>
           <h3>Tenha o Homebrew</h3>
-          <p>É ele que instala o ffmpeg. Se você ainda não tem, siga as instruções em <a href="https://brew.sh/pt-br/">brew.sh</a>.</p>
+          <p>Se você ainda não tem, siga as instruções em <a href="https://brew.sh/pt-br/">brew.sh</a>.</p>
         </div>
       </li>
       <li>
         <div>
-          <h3>Baixe e rode o instalador no Terminal</h3>
-          <p>O instalador confere o que falta, oferece instalar o ffmpeg e liga a ação no Finder.</p>
-          <div class="cmd"><code id="cmd-install">git clone https://github.com/luiz-claudio-rj/finder-converter.git
-cd finder-converter &amp;&amp; zsh install.sh</code><button class="copiar" type="button" data-copiar="cmd-install">Copiar</button></div>
-          <p style="margin-top:10px">Prefere sem git? <a href="https://github.com/luiz-claudio-rj/finder-converter/archive/refs/heads/main.zip">Baixe o ZIP</a>, abra a pasta no Terminal e rode <code style="background:#0E1530;padding:1px 6px;border-radius:4px">zsh install.sh</code>.</p>
+          <h3>Instale pelo Terminal</h3>
+          <p>O Homebrew instala o Converter e também o ffmpeg, se ele ainda não estiver no seu Mac. O segundo comando liga a ação no Finder.</p>
+          <div class="cmd"><code id="cmd-install">brew install luiz-claudio-rj/tap/finder-converter
+finder-converter setup</code><button class="copiar" type="button" data-copiar="cmd-install">Copiar</button></div>
+          <p style="margin-top:10px">Para atualizar depois, basta <code style="background:#0E1530;padding:1px 6px;border-radius:4px">brew upgrade</code>. Prefere sem o Homebrew instalar tudo? Use <a href="https://github.com/luiz-claudio-rj/finder-converter#pelo-código">a instalação pelo código</a>.</p>
         </div>
       </li>
       <li>
@@ -476,9 +486,11 @@ cd finder-converter &amp;&amp; zsh install.sh</code><button class="copiar" type=
     <details><summary>Meus arquivos são enviados para algum servidor?</summary><p>Não. Tudo roda no seu Mac com o ffmpeg e ferramentas do próprio macOS (sips, avconvert). Nenhum arquivo sai do computador.</p></details>
     <details><summary>Como converter MOV do iPhone para MP4 sem as cores lavadas?</summary><p>Clique com o botão direito no vídeo, escolha Ações Rápidas, Converter e o formato MP4. O Converter detecta o HDR e ajusta as cores antes de converter.</p></details>
     <details><summary>A opção Converter não aparece no menu. E agora?</summary><p>Clique com o botão direito em qualquer arquivo, vá em Ações Rápidas, Personalizar e ligue Converter. Se ainda não aparecer, rode o <code>install.sh</code> de novo: ele reinicia o Finder.</p></details>
+    <details><summary>Como diminuir um vídeo para mandar no WhatsApp?</summary><p>Escolha MP4 e o limite 16 MB (WhatsApp). O vídeo é comprimido em duas passadas para ficar abaixo de 16 MB. Se for longo demais para essa qualidade, a resolução é reduzida automaticamente e a janela mostra isso.</p></details>
+    <details><summary>Preciso instalar o ffmpeg antes?</summary><p>Não. Pelo Homebrew, o ffmpeg é instalado junto com o Converter. Pelo código, o instalador oferece instalar o que estiver faltando.</p></details>
     <details><summary>O arquivo original é alterado?</summary><p>Nunca. O arquivo novo é salvo ao lado do original, com o mesmo nome e a extensão nova.</p></details>
     <details><summary>Algo deu errado na conversão. Onde vejo o motivo?</summary><p>No registro em <code>~/Library/Logs/Converter.log</code>. A janela do Converter também avisa quantos arquivos falharam.</p></details>
-    <details><summary>Como desinstalar?</summary><p>Na pasta do projeto, rode <code>zsh uninstall.sh</code>. Ele remove a ação e o script, e deixa o ffmpeg e os seus arquivos como estão.</p></details>
+    <details><summary>Como desinstalar?</summary><p>Rode <code>finder-converter remove</code> e depois <code>brew uninstall finder-converter</code>. Se instalou pelo código, rode <code>zsh uninstall.sh</code> na pasta do projeto. Os seus arquivos ficam como estão.</p></details>
   </div>
 </section>
 </main>
@@ -505,9 +517,9 @@ cd finder-converter &amp;&amp; zsh install.sh</code><button class="copiar" type=
   const limpar = () => { timers.forEach(clearTimeout); timers = []; };
 
   const formatos = {
-    'MP4 (H.264)': { ext: 'mp4', mb: 68, desc: 'convertendo para MP4 (H.264)' },
-    'MP4 comprimido (HEVC)': { ext: 'mp4', mb: 31, desc: 'convertendo para MP4 comprimido (HEVC)' },
-    'WebM': { ext: 'webm', mb: 44, desc: 'convertendo para WebM' },
+    'MP4 (H.264)': { ext: 'mp4', mb: 68, desc: 'convertendo para MP4 (H.264)', limite: true, rapida: true },
+    'MP4 comprimido (HEVC)': { ext: 'mp4', mb: 31, desc: 'convertendo para MP4 comprimido (HEVC)', limite: true, rapida: true },
+    'WebM': { ext: 'webm', mb: 44, desc: 'convertendo para WebM', limite: true },
     'GIF': { ext: 'gif', mb: 96, desc: 'gerando o GIF' },
     'MP3 (só o áudio)': { ext: 'mp3', mb: 1.4, desc: 'extraindo o áudio em MP3', audio: true },
   };
@@ -576,9 +588,11 @@ cd finder-converter &amp;&amp; zsh install.sh</code><button class="copiar" type=
       <div class="conteudo">
         <h3>Converter arquivo</h3><p class="sub">IMG_2261.MOV</p>
         <div class="campo"><label for="o-f">Formato:</label><select id="o-f">${op(Object.keys(formatos))}</select></div>
-        <div class="campo"><label for="o-t">Tamanho:</label><select id="o-t">${op(Object.keys(fatorTam))}</select></div>
-        <p class="nota">O tamanho só diminui: vídeos menores ficam como estão.</p>
+        <div class="campo"><label for="o-t">Resolução:</label><select id="o-t">${op(Object.keys(fatorTam))}</select></div>
+        <div class="campo"><label for="o-l">Limite:</label><select id="o-l">${op(['Sem limite', '16 MB (WhatsApp)', '25 MB (e-mail)'])}</select></div>
         <div class="campo"><label for="o-q">Qualidade:</label><select id="o-q">${op(Object.keys(fatorQual))}</select></div>
+        <div class="campo"><label for="o-v">Velocidade:</label><select id="o-v">${op(['Normal', 'Rápida (chip do Mac)'])}</select></div>
+        <p class="nota" id="o-dica"></p>
         <div class="botoes"><button type="button" id="o-cancel">Cancelar</button><button type="button" class="padrao" id="o-ok">Converter</button></div>
       </div>`;
   }
@@ -593,24 +607,51 @@ cd finder-converter &amp;&amp; zsh install.sh</code><button class="copiar" type=
   function abrirOpcoes() {
     fecharMenus();
     mostrarJanela(opcoesHTML());
-    const tam = document.getElementById('o-t');
-    const fmt = document.getElementById('o-f');
-    fmt.addEventListener('change', () => { tam.disabled = formatos[fmt.value].audio; });
-    document.getElementById('o-cancel').addEventListener('click', reiniciar);
-    document.getElementById('o-ok').addEventListener('click', () =>
-      converter(fmt.value, tam.value, document.getElementById('o-q').value));
-    document.getElementById('o-ok').focus();
+    const $ = id => document.getElementById(id);
+    const fmt = $('o-f'), tam = $('o-t'), lim = $('o-l'), qual = $('o-q'), vel = $('o-v'), dicaJ = $('o-dica');
+    const atualizar = () => {   // mesmas regras da janela real
+      const f = formatos[fmt.value];
+      const limitando = f.limite && lim.value !== 'Sem limite';
+      tam.disabled = !!f.audio;
+      lim.disabled = !f.limite;
+      qual.disabled = limitando;
+      vel.disabled = !f.rapida || limitando;
+      dicaJ.textContent = limitando ? 'Limite: comprime em duas passadas para caber no tamanho.'
+        : (!vel.disabled && vel.value.startsWith('Rápida')) ? 'Rápida: usa o chip de vídeo do Mac, várias vezes mais rápido.'
+        : { 'Alta': 'Alta: melhor imagem, arquivo maior.', 'Média': 'Média: bom equilíbrio entre qualidade e tamanho.' }[qual.value]
+          || 'Baixa: arquivo bem menor, com perda de qualidade.';
+    };
+    [fmt, lim, qual, vel].forEach(s => s.addEventListener('change', atualizar));
+    atualizar();
+    $('o-cancel').addEventListener('click', reiniciar);
+    $('o-ok').addEventListener('click', () => converter(fmt.value, tam.value, qual.value,
+      lim.disabled ? 'Sem limite' : lim.value, vel.disabled ? 'Normal' : vel.value));
+    $('o-ok').focus();
   }
 
-  function converter(fmt, tam, qual) {
+  function converter(fmt, tam, qual, lim, vel) {
     const f = formatos[fmt];
     const curto = { 'Original': '', '1080p (Full HD)': '1080p', '720p (HD)': '720p' }[tam];
     const q = 'qualidade ' + qual.split(' ')[0].toLowerCase();
-    const desc = f.desc + (curto && !f.audio ? ', ' + curto : '') + ', ' + q;
-    const passos = f.audio ? 1 : 2;   // vídeo HDR: ajustar cores + converter
+    const limMb = parseInt(lim) || 0;
+    const rapida = vel.startsWith('Rápida');
     const saida = 'IMG_2261.' + f.ext;
-    const mb = f.audio ? f.mb * (qual === 'Alta' ? 1.6 : qual.startsWith('Baixa') ? .5 : 1)
-                       : f.mb * fatorTam[tam] * fatorQual[qual];
+
+    // passos: vídeo HDR ajusta as cores antes; com limite, o vídeo passa duas vezes
+    const etapas = [];
+    if (!f.audio) etapas.push({ texto: 'ajustando as cores (HDR → SDR)', anim: true });
+    if (limMb) {
+      // 1 min de vídeo do iPhone em 16 ou 25 MB: a taxa pede no máximo 1080p
+      const nota = curto === '720p' ? '' : ' (reduzido para 1080p)';
+      etapas.push({ texto: 'analisando o vídeo (1ª de 2 passadas)', passo: 6 });
+      etapas.push({ texto: `comprimindo para caber em ${limMb} MB${nota} (2ª passada)`, passo: 4 });
+    } else {
+      etapas.push({ texto: f.desc + (curto && !f.audio ? ', ' + curto : '') + ', ' + q + (rapida ? ', rápida' : ''),
+                    passo: rapida ? 12 : 4 });
+    }
+    const mb = limMb ? limMb * .95
+      : f.audio ? f.mb * (qual === 'Alta' ? 1.6 : qual.startsWith('Baixa') ? .5 : 1)
+      : f.mb * fatorTam[tam] * fatorQual[qual] * (rapida ? 1.15 : 1);
     const txtMb = mb >= 10 ? Math.round(mb) + ' MB' : mb.toFixed(1).replace('.', ',') + ' MB';
 
     mostrarJanela(`
@@ -627,16 +668,21 @@ cd finder-converter &amp;&amp; zsh install.sh</code><button class="copiar" type=
     const det = document.getElementById('p-det');
     document.getElementById('p-cancel').addEventListener('click', reiniciar);
 
-    const etapaConverter = () => {
-      passo.textContent = `Passo ${passos} de ${passos}: ${desc}`;
+    const rodarEtapa = n => {
+      const e = etapas[n];
+      if (!e) { depois(350, pronto); return; }
+      passo.textContent = `Passo ${n + 1} de ${etapas.length}: ${e.texto}`;
+      barra.firstElementChild.style.width = '';
+      det.textContent = '';
+      if (e.anim) { barra.classList.add('anim'); depois(1600, () => rodarEtapa(n + 1)); return; }
       barra.classList.remove('anim');
       let pct = 0;
       const tick = () => {
-        pct = Math.min(100, pct + (reduzido ? 100 : 4));
+        pct = Math.min(100, pct + (reduzido ? 100 : e.passo));
         barra.firstElementChild.style.width = pct + '%';
-        const faltam = Math.max(1, Math.round((100 - pct) / 4 * .09));   // tempo real da demonstração
+        const faltam = Math.max(1, Math.round((100 - pct) / e.passo * .09));   // tempo real da demonstração
         det.textContent = pct < 100 ? `${pct}% · faltam ~${faltam} s` : '100%';
-        if (pct < 100) depois(90, tick); else depois(350, pronto);
+        if (pct < 100) depois(90, tick); else depois(250, () => rodarEtapa(n + 1));
       };
       tick();
     };
@@ -650,13 +696,7 @@ cd finder-converter &amp;&amp; zsh install.sh</code><button class="copiar" type=
       document.getElementById('p-mostrar').focus();
     };
 
-    if (passos === 2) {
-      passo.textContent = 'Passo 1 de 2: ajustando as cores (HDR → SDR)';
-      barra.classList.add('anim');
-      depois(1600, etapaConverter);
-    } else {
-      etapaConverter();
-    }
+    rodarEtapa(0);
   }
 
   function mostrarNoFinder(nome, tamanho) {
