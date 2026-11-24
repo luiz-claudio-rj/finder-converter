@@ -32,10 +32,9 @@ Requisitos: macOS 13 ou mais novo (testado no macOS 26) e [Homebrew](https://bre
 
 ```bash
 brew install luiz-claudio-rj/tap/finder-converter
-finder-converter setup
 ```
 
-O `brew install` também instala o ffmpeg e o webp se você ainda não tiver. O `finder-converter setup` liga a ação no Finder e só precisa ser rodado uma vez: depois disso, `brew upgrade` atualiza o Converter sozinho.
+Um comando só: o Homebrew instala o Converter como *cask*, coloca a Ação Rápida em `~/Library/Services`, liga ela no Finder e instala o ffmpeg e o webp, se você ainda não tiver. No fim, o Finder reinicia sozinho para mostrar "Converter…" no menu. Para atualizar, `brew upgrade`.
 
 ### Pelo código
 
@@ -47,9 +46,8 @@ cd finder-converter && zsh install.sh
 O instalador:
 
 1. confere se `ffmpeg`, `ffprobe` e `cwebp` estão instalados e oferece instalar com o Homebrew;
-2. copia o `converter.sh` para `~/Library/Application Support/Converter/`;
-3. instala a Ação Rápida em `~/Library/Services/Converter.workflow`;
-4. liga a ação no menu do Finder e reinicia o Finder.
+2. instala a Ação Rápida em `~/Library/Services/Converter.workflow`, com o `converter.sh` dentro dela;
+3. liga a ação no menu do Finder e reinicia o Finder.
 
 Se "Converter…" não aparecer: botão direito em qualquer arquivo → Ações Rápidas → Personalizar… e ligue **Converter…**.
 
@@ -58,7 +56,6 @@ Se "Converter…" não aparecer: botão direito em qualquer arquivo → Ações 
 Pelo Homebrew:
 
 ```bash
-finder-converter remove
 brew uninstall finder-converter
 ```
 
@@ -87,10 +84,10 @@ SEM_JANELA=1 FORMATO="MP4 (H.264)" VELOCIDADE="Rápida" ./converter.sh video.mov
 | Arquivo | Papel |
 |---|---|
 | `converter.sh` | Script principal (zsh). Mostra a janela de opções e a de progresso (JavaScript for Automation com Cocoa) e chama `ffmpeg`, `avconvert`, `sips` e `cwebp`. |
-| `workflow/Converter.workflow` | Ação Rápida do Automator que só chama o `converter.sh` instalado. |
-| `install.sh` / `uninstall.sh` | Instalação e remoção. |
-| `bin/finder-converter` | Comando instalado pelo Homebrew (`setup`, `remove`, `--version`). |
-| `VERSION` | Versão atual. A fórmula fica em [luiz-claudio-rj/homebrew-tap](https://github.com/luiz-claudio-rj/homebrew-tap). |
+| `workflow/Converter.workflow` | Ação Rápida do Automator. Ao instalar, recebe o `converter.sh` em `Contents/Resources` e só chama esse script. |
+| `install.sh` / `uninstall.sh` | Instalação e remoção pelo código. |
+| `bin/finder-converter` | Comando instalado junto pelo Homebrew (`setup` confere se a ação está ligada; `--version`). |
+| `VERSION` | Versão atual. O cask do Homebrew fica em [luiz-claudio-rj/homebrew-tap](https://github.com/luiz-claudio-rj/homebrew-tap). |
 | `docs/` | Página do projeto (GitHub Pages). |
 
 ## Apoie

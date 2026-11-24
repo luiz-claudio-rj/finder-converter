@@ -77,7 +77,7 @@
     { "@type": "Question", "name": "Como diminuir um vídeo para mandar no WhatsApp?",
       "acceptedAnswer": { "@type": "Answer", "text": "No Converter, escolha MP4 e o limite 16 MB (WhatsApp). O vídeo é comprimido em duas passadas para ficar abaixo de 16 MB; se for longo, a resolução é reduzida automaticamente." } },
     { "@type": "Question", "name": "Como instalar o Converter com o Homebrew?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Rode brew install luiz-claudio-rj/tap/finder-converter e depois finder-converter setup. O Homebrew instala o ffmpeg junto, se ele ainda não estiver no Mac." } },
+      "acceptedAnswer": { "@type": "Answer", "text": "Rode brew install luiz-claudio-rj/tap/finder-converter. É um comando só: o Homebrew instala o Converter, liga a ação no Finder e instala o ffmpeg junto, se ele ainda não estiver no Mac." } },
     { "@type": "Question", "name": "Funciona em Mac com chip Intel e Apple Silicon?",
       "acceptedAnswer": { "@type": "Answer", "text": "Foi feito para os dois, do macOS 13 Ventura em diante, e testado no macOS 26. Precisa do Homebrew para instalar o ffmpeg; o instalador cuida do resto." } },
     { "@type": "Question", "name": "O arquivo original é alterado?",
@@ -483,9 +483,8 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       <li>
         <div>
           <h3>Instale pelo Terminal</h3>
-          <p>O Homebrew instala o Converter e também o ffmpeg, se ele ainda não estiver no seu Mac. O segundo comando liga a ação no Finder.</p>
-          <div class="cmd"><code id="cmd-install">brew install luiz-claudio-rj/tap/finder-converter
-finder-converter setup</code><button class="copiar" type="button" data-copiar="cmd-install">Copiar</button></div>
+          <p>Um comando só. O Homebrew instala o Converter, coloca a ação no Finder e instala o ffmpeg junto, se ele ainda não estiver no seu Mac. No fim, o Finder reinicia sozinho para mostrar a opção no menu.</p>
+          <div class="cmd"><code id="cmd-install">brew install luiz-claudio-rj/tap/finder-converter</code><button class="copiar" type="button" data-copiar="cmd-install">Copiar</button></div>
           <p style="margin-top:10px">Para atualizar depois, basta <code style="background:#0E1530;padding:1px 6px;border-radius:4px">brew upgrade</code>. Prefere sem o Homebrew instalar tudo? Use <a href="https://github.com/luiz-claudio-rj/finder-converter#pelo-código">a instalação pelo código</a>.</p>
         </div>
       </li>
@@ -506,12 +505,12 @@ finder-converter setup</code><button class="copiar" type="button" data-copiar="c
     <details><summary>É grátis mesmo?</summary><p>Sim. É código aberto com licença MIT: sem assinatura, sem anúncio, sem conta e sem marca d'água.</p></details>
     <details><summary>Meus arquivos são enviados para algum servidor?</summary><p>Não. Tudo roda no seu Mac com o ffmpeg e ferramentas do próprio macOS (sips, avconvert). Nenhum arquivo sai do computador.</p></details>
     <details><summary>Como converter MOV do iPhone para MP4 sem as cores lavadas?</summary><p>Clique com o botão direito no vídeo, escolha Ações Rápidas, Converter e o formato MP4. O Converter detecta o HDR e ajusta as cores antes de converter.</p></details>
-    <details><summary>A opção Converter não aparece no menu. E agora?</summary><p>Clique com o botão direito em qualquer arquivo, vá em Ações Rápidas, Personalizar e ligue Converter. Se ainda não aparecer, rode o <code>install.sh</code> de novo: ele reinicia o Finder.</p></details>
+    <details><summary>A opção Converter não aparece no menu. E agora?</summary><p>Clique com o botão direito em qualquer arquivo, vá em Ações Rápidas, Personalizar e ligue Converter. Se ainda não aparecer, rode <code>brew reinstall finder-converter</code>: ele reinstala a ação e reinicia o Finder.</p></details>
     <details><summary>Como diminuir um vídeo para mandar no WhatsApp?</summary><p>Escolha MP4 e o limite 16 MB (WhatsApp). O vídeo é comprimido em duas passadas para ficar abaixo de 16 MB. Se for longo demais para essa qualidade, a resolução é reduzida automaticamente e a janela mostra isso.</p></details>
     <details><summary>Preciso instalar o ffmpeg antes?</summary><p>Não. Pelo Homebrew, o ffmpeg é instalado junto com o Converter. Pelo código, o instalador oferece instalar o que estiver faltando.</p></details>
     <details><summary>O arquivo original é alterado?</summary><p>Nunca. O arquivo novo é salvo ao lado do original, com o mesmo nome e a extensão nova.</p></details>
     <details><summary>Algo deu errado na conversão. Onde vejo o motivo?</summary><p>No registro em <code>~/Library/Logs/Converter.log</code>. A janela do Converter também avisa quantos arquivos falharam.</p></details>
-    <details><summary>Como desinstalar?</summary><p>Rode <code>finder-converter remove</code> e depois <code>brew uninstall finder-converter</code>. Se instalou pelo código, rode <code>zsh uninstall.sh</code> na pasta do projeto. Os seus arquivos ficam como estão.</p></details>
+    <details><summary>Como desinstalar?</summary><p>Rode <code>brew uninstall finder-converter</code>. Se instalou pelo código, rode <code>zsh uninstall.sh</code> na pasta do projeto. Os seus arquivos ficam como estão.</p></details>
     <details><summary>Como posso apoiar o projeto?</summary><p>O Converter é e continua grátis. Se ele te ajudou, você pode agradecer com qualquer valor <a href="#apoie">por Pix ou pelo GitHub Sponsors</a>. Contar para alguém que precisa converter arquivos também ajuda muito.</p></details>
   </div>
 </section>
