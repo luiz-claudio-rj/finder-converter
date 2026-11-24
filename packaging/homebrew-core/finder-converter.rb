@@ -2,7 +2,7 @@ class FinderConverter < Formula
   desc "Convert video, audio and images from the Finder's right-click menu"
   homepage "https://luiz-claudio-rj.github.io/finder-converter/"
   url "https://github.com/luiz-claudio-rj/finder-converter/archive/refs/tags/v1.2.1.tar.gz"
-  sha256 "SHA256_DA_VERSAO"
+  sha256 "2534abc632a21401036427d1bf358f8c4419d244d1ae98b25f6128e4072cb987"
   license "MIT"
 
   livecheck do

@@ -31,6 +31,7 @@ Cumprir as regras não garante a aceitação: os revisores avaliam caso a caso.
 2. Valide localmente, como o Homebrew vai fazer:
    ```bash
    brew tap-new local/teste --no-git
+   brew trust local/teste   # o Homebrew só carrega fórmulas de taps marcados como confiáveis
    cp finder-converter.rb "$(brew --repo local/teste)/Formula/"
    brew install --build-from-source local/teste/finder-converter
    brew test local/teste/finder-converter
