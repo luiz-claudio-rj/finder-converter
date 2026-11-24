@@ -297,6 +297,24 @@ h2 { font: 700 clamp(1.9rem, 3.4vw, 2.6rem)/1.1 var(--display); letter-spacing: 
 .faq details p { margin: 10px 0 0; color: var(--ink-soft); max-width: 68ch; }
 .faq code, .porque code { font: .92em ui-monospace, Menlo, monospace; background: #E8ECF4; padding: 1px 5px; border-radius: 4px; }
 
+.apoie { background: var(--surface); border-top: 1px solid var(--line); }
+.apoie-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: start; }
+.apoie h3 { font: 700 1.25rem/1.25 var(--display); margin: 0 0 6px; }
+.apoie p { color: var(--ink-soft); margin: 0 0 16px; }
+.apoie .intro { margin-bottom: 32px; }
+.btn-sponsor { background: var(--ink); color: #fff; }
+.btn-sponsor:hover { background: #2B3352; }
+.btn-sponsor svg { color: #F06AA6; }
+.pix { border: 1px solid var(--line); border-radius: 14px; padding: 28px; background: var(--page); }
+.pix-corpo { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+.qr { width: 180px; height: 180px; background: #fff; border-radius: 10px; padding: 16px; flex: none; }   /* margem branca > 4 módulos, como pede o padrão QR */
+.qr svg { width: 100%; height: 100%; display: block; }
+.btn-pix { background: #32BCAD; color: #06302C; }   /* verde-água do Pix */
+.btn-pix:hover { background: #4FCABD; }
+.pix-chave { margin: 14px 0 6px; font-size: .9rem; }
+.pix-chave code { font: .85rem ui-monospace, Menlo, monospace; word-break: break-all; color: var(--ink); }
+.pix-nome { font-size: .9rem; margin: 0; }
+
 footer { padding: 40px 0 56px; color: var(--ink-soft); font-size: .95rem; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 
@@ -305,6 +323,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   .formatos { grid-template-columns: 1fr; }
   .formatos > div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
   .porque { grid-template-columns: 1fr; }
+  .apoie-grid { grid-template-columns: 1fr; gap: 36px; }
   .nav-links a:not(.gh) { display: none; }
 }
 @media (max-width: 520px) {
@@ -491,17 +510,93 @@ finder-converter setup</code><button class="copiar" type="button" data-copiar="c
     <details><summary>O arquivo original é alterado?</summary><p>Nunca. O arquivo novo é salvo ao lado do original, com o mesmo nome e a extensão nova.</p></details>
     <details><summary>Algo deu errado na conversão. Onde vejo o motivo?</summary><p>No registro em <code>~/Library/Logs/Converter.log</code>. A janela do Converter também avisa quantos arquivos falharam.</p></details>
     <details><summary>Como desinstalar?</summary><p>Rode <code>finder-converter remove</code> e depois <code>brew uninstall finder-converter</code>. Se instalou pelo código, rode <code>zsh uninstall.sh</code> na pasta do projeto. Os seus arquivos ficam como estão.</p></details>
+    <details><summary>Como posso apoiar o projeto?</summary><p>O Converter é e continua grátis. Se ele te ajudou, você pode agradecer com qualquer valor <a href="#apoie">por Pix ou pelo GitHub Sponsors</a>. Contar para alguém que precisa converter arquivos também ajuda muito.</p></details>
+  </div>
+</section>
+
+<section class="apoie" id="apoie" aria-labelledby="t-apoie">
+  <div class="wrap apoie-grid">
+    <div>
+      <h2 id="t-apoie">Apoie o Converter</h2>
+      <p class="intro">O Converter é grátis e vai continuar assim, sem anúncio e sem versão paga. Se ele te poupou tempo, dá para agradecer com o valor que quiser.</p>
+      <div class="sponsor">
+        <h3>GitHub Sponsors</h3>
+        <p>Apoio único ou mensal, de qualquer país, pelo GitHub.</p>
+        <a class="btn btn-sponsor" href="https://github.com/sponsors/luiz-claudio-rj">
+          <svg viewBox="0 0 16 16" aria-hidden="true" fill="currentColor"><path d="m8 14.25.345.666a.75.75 0 0 1-.69 0l-.008-.004-.018-.01a7.152 7.152 0 0 1-.31-.17 22.055 22.055 0 0 1-3.434-2.414C2.045 10.731 0 8.35 0 5.5 0 2.836 2.086 1 4.25 1 5.797 1 7.153 1.802 8 3.02 8.847 1.802 10.203 1 11.75 1 13.914 1 16 2.836 16 5.5c0 2.85-2.045 5.231-3.885 6.818a22.066 22.066 0 0 1-3.744 2.584l-.018.01-.006.003h-.002ZM4.25 2.5c-1.336 0-2.75 1.164-2.75 3 0 2.15 1.58 4.144 3.365 5.682A20.58 20.58 0 0 0 8 13.393a20.58 20.58 0 0 0 3.135-2.211C12.92 9.644 14.5 7.65 14.5 5.5c0-1.836-1.414-3-2.75-3-1.373 0-2.609.986-3.029 2.456a.749.749 0 0 1-1.442 0C6.859 3.486 5.623 2.5 4.25 2.5Z"/></svg>
+          Apoiar no GitHub
+        </a>
+      </div>
+    </div>
+    <div class="pix" id="pix" hidden>
+      <h3>Pix</h3>
+      <p>Aponte a câmera do celular ou use o código copia e cola no app do seu banco.</p>
+      <div class="pix-corpo">
+        <div class="qr" id="pix-qr" role="img" aria-label="QR Code do Pix para apoiar o Converter"></div>
+        <div>
+          <button class="btn btn-pix" type="button" id="pix-copiar">Copiar código Pix</button>
+          <p class="pix-chave">Chave aleatória:<br><code id="pix-chave"></code></p>
+          <p class="pix-nome">Em nome de <span id="pix-nome"></span></p>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>Converter, por <a href="https://github.com/luiz-claudio-rj">Luiz Claudio</a>. Licença MIT.</span>
+    <span>Converter, por <a href="https://github.com/luiz-claudio-rj">Luiz Claudio</a>. Licença MIT. <a href="#apoie">Apoie o projeto</a>.</span>
     <span>Usa <a href="https://ffmpeg.org">FFmpeg</a> e <a href="https://developers.google.com/speed/webp">libwebp</a>. Não é afiliado à Apple.</span>
   </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" integrity="sha384-mZT2gIty7ZDdOGkxfP6joZcYdMW1Jvj9dRlfpTmaJAKKXTqzygtB22k7FLe+KZC1" crossorigin="anonymous"></script>
+<script>
+/* Pix: gera o "copia e cola" (BR Code estático do Banco Central) e o QR Code.
+   Sem valor fixo: quem apoia escolhe quanto quer mandar. */
+(() => {
+  const PIX = { chave: 'a25659b7-1c09-4fa6-905a-9b8ecd2c68b1', nome: 'Luiz Claudio', cidade: 'Sao Goncalo' };
+  const caixa = document.getElementById('pix');
+  if (!PIX.chave || !caixa) return;
+
+  const campo = (id, v) => id + String(v.length).padStart(2, '0') + v;
+  const crc16 = txt => {                       // CRC16-CCITT-FALSE, exigido pelo padrão BR Code
+    let crc = 0xFFFF;
+    for (const ch of new TextEncoder().encode(txt)) {
+      crc ^= ch << 8;
+      for (let i = 0; i < 8; i++) crc = (crc & 0x8000) ? ((crc << 1) ^ 0x1021) & 0xFFFF : (crc << 1) & 0xFFFF;
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  };
+  const limpa = (s, max) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Za-z0-9 ]/g, '').slice(0, max);
+  const corpo = campo('00', '01')
+    + campo('26', campo('00', 'br.gov.bcb.pix') + campo('01', PIX.chave))
+    + campo('52', '0000') + campo('53', '986') + campo('58', 'BR')
+    + campo('59', limpa(PIX.nome, 25)) + campo('60', limpa(PIX.cidade, 15))
+    + campo('62', campo('05', '***')) + '6304';
+  const copiaECola = corpo + crc16(corpo);
+
+  document.getElementById('pix-chave').textContent = PIX.chave;
+  document.getElementById('pix-nome').textContent = PIX.nome;
+  if (window.qrcode) {
+    const qr = qrcode(0, 'M');
+    qr.addData(copiaECola);
+    qr.make();
+    document.getElementById('pix-qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+  } else {
+    document.getElementById('pix-qr').hidden = true;   // sem a biblioteca, fica o copia e cola
+  }
+  const botao = document.getElementById('pix-copiar');
+  botao.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(copiaECola); botao.textContent = 'Código copiado'; }
+    catch { prompt('Copie o código Pix:', copiaECola); }
+    setTimeout(() => (botao.textContent = 'Copiar código Pix'), 2000);
+  });
+  caixa.dataset.payload = copiaECola;   // usado nos testes
+  caixa.hidden = false;
+})();
+</script>
 <script>
 /* Demonstração: imita o fluxo real do Converter (menu → opções → passos → pronto). */
 (() => {
