@@ -9,6 +9,7 @@
 # SEM_JANELA=1 desliga a janela de progresso; SEM_AVISO=1 desliga a notificação.
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+zmodload zsh/mathfunc   # int() nas contas do limite de tamanho
 LOG="$HOME/Library/Logs/Converter.log"
 PREFS="$HOME/Library/Application Support/Converter"
 
@@ -35,35 +36,44 @@ if [[ -z $cat_alvo ]]; then
   exit 0
 fi
 
+limites=(); velocidades=()
 case $cat_alvo in
   video)
     formatos=("MP4 (H.264)" "MP4 comprimido (HEVC)" "MOV" "WebM" "GIF" "MP3 (só o áudio)" "M4A (só o áudio)")
     tamanhos=("Original" "4K (2160p)" "1080p (Full HD)" "720p (HD)" "480p")
-    nota_tamanho="O tamanho só diminui: vídeos menores que a opção ficam como estão." ;;
+    rotulo_tamanho="Resolução:"
+    nota_tamanho="Só diminui: vídeos menores que a opção ficam como estão."
+    limites=("Sem limite" "8 MB (Discord)" "16 MB (WhatsApp)" "25 MB (e-mail)" "50 MB" "100 MB" "Outro valor…")
+    velocidades=("Normal" "Rápida (chip do Mac)") ;;
   audio)
     formatos=("MP3" "M4A" "WAV" "FLAC" "OGG")
     tamanhos=()
-    nota_tamanho="" ;;
+    rotulo_tamanho=""; nota_tamanho="" ;;
   imagem)
     formatos=("JPG" "PNG" "WebP" "HEIC" "AVIF" "PDF")
     tamanhos=("Original" "4096 px" "2048 px" "1920 px" "1280 px" "1024 px" "512 px")
+    rotulo_tamanho="Tamanho:"
     nota_tamanho="Medida do lado maior. Imagens menores que a opção ficam como estão." ;;
 esac
 qualidades=("Alta" "Média" "Baixa (arquivo menor)")
-sem_qualidade=("WAV" "FLAC" "PNG" "PDF")   # formatos sem perda: a qualidade não se aplica
+sem_qualidade=("WAV" "FLAC" "PNG" "PDF")              # formatos sem perda: a qualidade não se aplica
+com_limite=("MP4 (H.264)" "MP4 comprimido (HEVC)" "MOV" "WebM")   # aceitam limite de tamanho do arquivo
+com_velocidade=("MP4 (H.264)" "MP4 comprimido (HEVC)" "MOV")      # têm codificador no chip do Mac
 
 # ───────────────────────── janela de opções ─────────────────────────
 escolher_opcoes() {
   local res padrao n=$#
   res=$(mktemp -t converter-escolha)
-  padrao="${formatos[1]}|Original|Média"
+  padrao="${formatos[1]}|Original|Média|Sem limite|Normal"
   [[ -s "$PREFS/ultima-$cat_alvo" ]] && padrao=$(<"$PREFS/ultima-$cat_alvo")
   local resumo="${primeiro:t}"; (( n > 1 )) && resumo+=" e mais $(( n - 1 ))"
 
   CONV_RESULT="$res" CONV_PADRAO="$padrao" CONV_RESUMO="$resumo" CONV_QTD="$n" \
   CONV_FORMATOS="${(pj:\n:)formatos}" CONV_TAMANHOS="${(pj:\n:)tamanhos}" \
   CONV_QUALIDADES="${(pj:\n:)qualidades}" CONV_SEM_QUALIDADE="${(pj:\n:)sem_qualidade}" \
-  CONV_NOTA="$nota_tamanho" \
+  CONV_LIMITES="${(pj:\n:)limites}" CONV_COM_LIMITE="${(pj:\n:)com_limite}" \
+  CONV_VELOCIDADES="${(pj:\n:)velocidades}" CONV_COM_VELOCIDADE="${(pj:\n:)com_velocidade}" \
+  CONV_NOTA="$nota_tamanho" CONV_ROTULO_TAM="$rotulo_tamanho" \
   osascript -l JavaScript >/dev/null 2>&1 <<'JS'
 ObjC.import('Cocoa');
 const env = $.NSProcessInfo.processInfo.environment;
@@ -72,8 +82,11 @@ const lista = k => get(k).split('\n').filter(x => x);
 const RES = get('CONV_RESULT');
 const formatos = lista('CONV_FORMATOS'), tamanhos = lista('CONV_TAMANHOS');
 const qualidades = lista('CONV_QUALIDADES'), semQualidade = lista('CONV_SEM_QUALIDADE');
+const limites = lista('CONV_LIMITES'), comLimite = lista('CONV_COM_LIMITE');
+const velocidades = lista('CONV_VELOCIDADES'), comVelocidade = lista('CONV_COM_VELOCIDADE');
 const padrao = get('CONV_PADRAO').split('|');
 const qtd = parseInt(get('CONV_QTD')) || 1;
+const OUTRO = 'Outro valor…';
 const dicas = {
   'Alta': 'Alta: melhor imagem e som, arquivo maior.',
   'Média': 'Média: bom equilíbrio entre qualidade e tamanho.',
@@ -83,8 +96,8 @@ const dicas = {
 const app = $.NSApplication.sharedApplication;
 app.setActivationPolicy($.NSApplicationActivationPolicyAccessory);
 
-const W = 460, temTam = tamanhos.length > 0;
-const H = 250 + (temTam ? 46 : 0);
+const W = 460, temTam = tamanhos.length > 0, temLim = limites.length > 0, temVel = velocidades.length > 0;
+const H = 250 + (temTam ? 46 : 0) + (temLim ? 34 : 0) + (temVel ? 34 : 0);
 const win = $.NSWindow.alloc.initWithContentRectStyleMaskBackingDefer($.NSMakeRect(0, 0, W, H), 1, 2, false);
 win.title = 'Converter';
 win.level = 3;
@@ -107,7 +120,19 @@ ObjC.registerSubclass({
   methods: {
     'mudou:': { types: ['void', ['id']], implementation: function (s) { atualizar(); } },
     'converter:': { types: ['void', ['id']], implementation: function (s) {
-      const r = [sel(pFormato), temTam ? sel(pTamanho) : 'Original', sel(pQualidade)].join('|');
+      let limite = temLim ? sel(pLimite) : 'Sem limite';
+      if (limite === OUTRO) {
+        const mb = parseFloat(String(ObjC.unwrap(campoMB.stringValue)).replace(',', '.'));
+        if (!(mb > 0)) {
+          dica.textColor = $.NSColor.systemRedColor;
+          dica.stringValue = 'Digite o limite em MB, por exemplo 12.';
+          win.makeFirstResponder(campoMB);
+          return;
+        }
+        limite = mb + ' MB';
+      }
+      const r = [sel(pFormato), temTam ? sel(pTamanho) : 'Original', sel(pQualidade),
+                 limite, temVel ? sel(pVelocidade) : 'Normal'].join('|');
       $(r).writeToFileAtomicallyEncodingError(RES, true, 4, null);
       app.terminate(null);
     } },
@@ -123,9 +148,9 @@ y -= 20;
 texto(get('CONV_RESUMO'), 20, y, W - 40, 18, 12, { cinza: true });
 y -= 44;
 
-function linha(rotulo, itens, padraoItem) {
+function linha(rotulo, itens, padraoItem, largura) {
   texto(rotulo, 20, y + 3, 90, 18, 13, { direita: true });
-  const p = $.NSPopUpButton.alloc.initWithFramePullsDown($.NSMakeRect(118, y - 2, W - 138, 26), false);
+  const p = $.NSPopUpButton.alloc.initWithFramePullsDown($.NSMakeRect(118, y - 2, largura || W - 138, 26), false);
   itens.forEach(i => p.addItemWithTitle(i));
   if (itens.includes(padraoItem)) p.selectItemWithTitle(padraoItem);
   p.target = ctl; p.action = 'mudou:';
@@ -134,21 +159,49 @@ function linha(rotulo, itens, padraoItem) {
   return p;
 }
 const pFormato = linha('Formato:', formatos, padrao[0]);
-let pTamanho = null, notaTam = null;
+let pTamanho = null, pLimite = null, campoMB = null, rotuloMB = null, pVelocidade = null;
 if (temTam) {
-  pTamanho = linha('Tamanho:', tamanhos, padrao[1]);
-  notaTam = texto(get('CONV_NOTA'), 118, y + 12, W - 138, 16, 11, { cinza: true });   // logo abaixo do menu
+  pTamanho = linha(get('CONV_ROTULO_TAM'), tamanhos, padrao[1]);
+  texto(get('CONV_NOTA'), 118, y + 12, W - 138, 16, 11, { cinza: true });   // logo abaixo do menu
   y -= 12;
 }
+if (temLim) {
+  // "Outro valor…" mostra um campo para digitar o limite em MB ao lado do menu
+  const salvoOutro = padrao[3] && !limites.includes(padrao[3]) && /^[\d.]+ MB$/.test(padrao[3]);
+  campoMB = $.NSTextField.alloc.initWithFrame($.NSMakeRect(W - 112, y - 1, 60, 24));
+  campoMB.placeholderString = 'ex.: 12';
+  if (salvoOutro) campoMB.stringValue = padrao[3].split(' ')[0];
+  v.addSubview(campoMB);
+  rotuloMB = texto('MB', W - 46, y + 3, 30, 18, 13);
+  pLimite = linha('Limite:', limites, salvoOutro ? OUTRO : padrao[3], W - 138 - 100);
+}
 const pQualidade = linha('Qualidade:', qualidades, padrao[2]);
+if (temVel) pVelocidade = linha('Velocidade:', velocidades, padrao[4]);
 const dica = texto('', 118, y - 14, W - 138, 32, 11, { cinza: true, quebra: true });
 
 function atualizar() {
   const f = sel(pFormato);
   const semQ = semQualidade.includes(f);
-  pQualidade.enabled = !semQ;
-  dica.stringValue = semQ ? f + ' não tem perda: a qualidade é sempre a máxima.' : (dicas[sel(pQualidade)] || '');
+  const podeLimitar = comLimite.includes(f);
+  const limitando = podeLimitar && pLimite && sel(pLimite) !== 'Sem limite';
+  const podeAcelerar = comVelocidade.includes(f) && !limitando;
   if (pTamanho) pTamanho.enabled = !f.includes('só o áudio');
+  if (pLimite) {
+    pLimite.enabled = podeLimitar;
+    const outro = podeLimitar && sel(pLimite) === OUTRO;
+    campoMB.hidden = !outro; rotuloMB.hidden = !outro;
+  }
+  pQualidade.enabled = !semQ && !limitando;
+  if (pVelocidade) pVelocidade.enabled = podeAcelerar;
+  dica.textColor = $.NSColor.secondaryLabelColor;
+  if (limitando)
+    dica.stringValue = 'Limite: o vídeo é comprimido em duas passadas para caber no tamanho. Qualidade e velocidade ficam automáticas.';
+  else if (semQ)
+    dica.stringValue = f + ' não tem perda: a qualidade é sempre a máxima.';
+  else if (podeAcelerar && sel(pVelocidade).startsWith('Rápida'))
+    dica.stringValue = 'Rápida: usa o chip de vídeo do Mac, várias vezes mais rápido. O arquivo sai um pouco maior.';
+  else
+    dica.stringValue = dicas[sel(pQualidade)] || '';
 }
 atualizar();
 
@@ -169,14 +222,14 @@ JS
   ESCOLHA=$(<"$res"); rm -f "$res"
 }
 
-if [[ -n $FORMATO ]]; then
-  TAMANHO=${TAMANHO:-Original}; QUALIDADE=${QUALIDADE:-Média}
-else
+if [[ -z $FORMATO ]]; then
   escolher_opcoes "$@"
   [[ -z $ESCOLHA ]] && exit 0
-  IFS='|' read -r FORMATO TAMANHO QUALIDADE <<< "$ESCOLHA"
+  IFS='|' read -r FORMATO TAMANHO QUALIDADE LIMITE VELOCIDADE <<< "$ESCOLHA"
   mkdir -p "$PREFS" && print -r -- "$ESCOLHA" > "$PREFS/ultima-$cat_alvo"
 fi
+TAMANHO=${TAMANHO:-Original}; QUALIDADE=${QUALIDADE:-Média}
+LIMITE=${LIMITE:-Sem limite}; VELOCIDADE=${VELOCIDADE:-Normal}
 [[ -z $FORMATO ]] && exit 0
 
 case $FORMATO in
@@ -212,10 +265,23 @@ case $QUALIDADE in
 esac
 (( ${sem_qualidade[(Ie)$FORMATO]} )) && QUAL_CURTA=""
 
+# Limite do arquivo em MB ("16 MB (WhatsApp)", "12.5 MB"…); 0 = sem limite.
+LIM_MB=${${LIMITE%% *}/,/.}
+[[ $LIM_MB == <->(.<->|) ]] && (( LIM_MB > 0 )) && (( ${com_limite[(Ie)$FORMATO]} )) || LIM_MB=0
+LIMITADO=$(( LIM_MB > 0 ))
+LIM_TXT=${LIM_MB/./,}   # "5,5" para mostrar na janela
+(( LIMITADO )) && QUAL_CURTA=""
+
+# Velocidade "Rápida": codificador de vídeo do chip (VideoToolbox), só em H.264/HEVC e sem limite.
+RAPIDA=0
+[[ $VELOCIDADE == Rápida* ]] && (( ${com_velocidade[(Ie)$FORMATO]} && ! LIMITADO )) && RAPIDA=1
+
 #                 alta  média baixa
 crf_x264=(        18    23    28 )
 crf_x265=(        24    28    32 )
 crf_vp9=(         28    32    38 )
+vt_h264=(         75    66    55 )   # chip do Mac (-q:v), calibrado para dar tamanhos parecidos com o x264
+vt_hevc=(         58    50    42 )
 aac_video=(       192k  160k  96k )
 opus_video=(      160k  128k  96k )
 gif_fps=(         15    12    8 )
@@ -421,6 +487,7 @@ descricao_conversao() {
   esac
   [[ -n $TAM_CURTO && $1 != sem-tamanho ]] && d+=", $TAM_CURTO"
   [[ -n $QUAL_CURTA ]] && d+=", $QUAL_CURTA"
+  (( RAPIDA )) && d+=", rápida"
   echo "$d"
 }
 
@@ -468,15 +535,31 @@ lado_maior() {
 # A imagem precisa ser reduzida? (só se for maior que o tamanho escolhido)
 reduz_imagem() { (( ALVO > 0 )) && (( $(lado_maior "$1") > ALVO )); }
 
+# Tenta o codificador do chip do Mac; se ele não estiver disponível (alguns Macs Intel),
+# anota no registro e avisa na janela que vai seguir com a conversão normal.
+chip_ou_normal() {
+  local codec=$1; shift
+  ff -map 0:v:0 -map '0:a:0?' -vf "$esc$PAR" "$@" -c:a aac -b:a $aac_video[Q] -movflags +faststart "$out" && return 0
+  cancelado && return 1
+  print -r -- "$(date '+%F %T') $codec indisponível, usando conversão normal: $in" >> "$LOG"
+  passo $PASSOS "$(descricao_conversao) (chip indisponível, usando a normal)" 0
+  return 1
+}
+
 converter() {
   local in="$1" out="$2" esc=""
+  (( LIMITADO )) && { converter_limitado "$in" "$out"; return; }
   [[ $cat_alvo == video ]] && esc=$(escala_video "$in")
   local reduz=(); [[ $cat_alvo == imagem ]] && reduz_imagem "$in" && reduz=(-Z $ALVO)
   case $FORMATO in
     "MP4 (H.264)"|MOV)
+      (( RAPIDA )) && chip_ou_normal h264_videotoolbox -c:v h264_videotoolbox -q:v $vt_h264[Q] -pix_fmt yuv420p && return 0
+      cancelado && return 1
       ff -map 0:v:0 -map '0:a:0?' -vf "$esc$PAR" -c:v libx264 -crf $crf_x264[Q] -preset medium -pix_fmt yuv420p \
         -c:a aac -b:a $aac_video[Q] -movflags +faststart "$out" ;;
     "MP4 comprimido (HEVC)")
+      (( RAPIDA )) && chip_ou_normal hevc_videotoolbox -c:v hevc_videotoolbox -q:v $vt_hevc[Q] -tag:v hvc1 -pix_fmt yuv420p && return 0
+      cancelado && return 1
       ff -map 0:v:0 -map '0:a:0?' -vf "$esc$PAR" -c:v libx265 -crf $crf_x265[Q] -preset fast -pix_fmt yuv420p -tag:v hvc1 \
         -x265-params log-level=error -c:a aac -b:a $aac_video[Q] -movflags +faststart "$out" ;;
     WebM)
@@ -510,6 +593,98 @@ converter() {
         local rc=$?; rm -f "$tmp"; return $rc
       fi ;;
   esac
+}
+
+# ───────────── limite de tamanho do arquivo (ex.: 16 MB para o WhatsApp) ─────────────
+# Calcula a taxa de bits que cabe no limite e codifica em duas passadas: a 1ª só analisa
+# o vídeo, a 2ª comprime usando essa análise, o que acerta o tamanho com precisão.
+# Se a taxa ficar baixa para a resolução, reduz a resolução sozinho (e avisa no passo).
+# Se mesmo assim passar do limite, refaz a 2ª passada com 10% a menos (até 2 vezes).
+# Orçamento do limite: define ORC_V e ORC_A (kbit/s de vídeo e de áudio) para o arquivo $1.
+# Falha (com MOTIVO) se o vídeo for longo demais para o limite. O laço principal chama
+# antes de tudo, para não gastar tempo ajustando as cores de um vídeo que não vai caber.
+orcamento_limite() {
+  local dur_us; dur_us=$(duracao_us "$1")
+  (( dur_us > 0 )) || { MOTIVO="Não foi possível ler a duração do vídeo."; return 1; }
+  # total em kbit/s, com 4% de folga para o contêiner
+  local total=$(( LIM_MB * 1048576 * 8 * 0.96 / 1000.0 / (dur_us / 1000000.0) ))
+  local tem_audio
+  tem_audio=$(probe -select_streams a:0 -show_entries stream=index -of csv=p=0 "$1" 2>/dev/null)
+  ORC_A=0
+  if [[ -n $tem_audio ]]; then
+    if (( total > 1500 )); then ORC_A=128; elif (( total > 400 )); then ORC_A=96; else ORC_A=64; fi
+  fi
+  ORC_V=$(( int(total - ORC_A) ))
+  if (( ORC_V < 80 )); then
+    MOTIVO="O vídeo é longo demais para caber em $LIM_TXT MB com qualidade aceitável. Escolha um limite maior."
+    print -r -- "$(date '+%F %T') limite impossível ($ORC_V kbit/s de vídeo): $ARQ_ORIGINAL → $LIM_TXT MB" >> "$LOG"
+    return 1
+  fi
+}
+
+converter_limitado() {
+  local in="$1" out="$2"
+  local B=$(( PASSOS - 2 ))                         # passos anteriores (ajuste de cores do HDR)
+  local alvo_bytes=$(( int(LIM_MB * 1048576) ))
+  orcamento_limite "$in" || return 1
+  local v=$ORC_V a=$ORC_A
+
+  # resolução automática: HEVC e VP9 rendem ~40% mais por bit que o H.264
+  local fator=1.0; [[ $FORMATO == (*HEVC*|WebM) ]] && fator=0.6
+  local auto=0
+  if   (( v < 450 * fator ));  then auto=360
+  elif (( v < 900 * fator ));  then auto=480
+  elif (( v < 1800 * fator )); then auto=720
+  elif (( v < 4000 * fator )); then auto=1080
+  fi
+  local ALVO=$ALVO nota=""
+  if (( auto && (ALVO == 0 || auto < ALVO) )); then ALVO=$auto; fi
+  local esc; esc=$(escala_video "$in")
+  [[ -n $esc ]] && (( auto && ALVO == auto )) && nota=" (reduzido para ${auto}p)"
+
+  local tmp; tmp=$(mktemp -d -t converter-2p)
+  local vf="$esc$PAR" p1 p2 aud extra=(-movflags +faststart)
+  venc() {   # codificador de vídeo para a taxa $1 (kbit/s)
+    case $FORMATO in
+      "MP4 (H.264)"|MOV)       print -r -- "-c:v libx264 -preset medium -pix_fmt yuv420p -b:v ${1}k" ;;
+      "MP4 comprimido (HEVC)") print -r -- "-c:v libx265 -preset fast -pix_fmt yuv420p -tag:v hvc1 -b:v ${1}k" ;;
+      WebM)                    print -r -- "-c:v libvpx-vp9 -row-mt 1 -deadline good -cpu-used 4 -b:v ${1}k" ;;
+    esac
+  }
+  case $FORMATO in
+    "MP4 comprimido (HEVC)")
+      p1=(-x265-params "pass=1:stats=$tmp/x265.log:log-level=error")
+      p2=(-x265-params "pass=2:stats=$tmp/x265.log:log-level=error")
+      aud=(-c:a aac -b:a ${a}k) ;;
+    WebM)
+      vf="${esc%,}${esc:+,}null"; extra=()
+      p1=(-pass 1 -passlogfile "$tmp/2p"); p2=(-pass 2 -passlogfile "$tmp/2p")
+      aud=(-c:a libopus -b:a ${a}k) ;;
+    *)
+      p1=(-pass 1 -passlogfile "$tmp/2p"); p2=(-pass 2 -passlogfile "$tmp/2p")
+      aud=(-c:a aac -b:a ${a}k) ;;
+  esac
+
+  local rc=0 tentativa=0
+  passo $(( B + 1 )) "analisando o vídeo (1ª de 2 passadas)" 0
+  ff -map 0:v:0 -vf "$vf" ${=$(venc $v)} $p1 -an -f null /dev/null || rc=1
+  if (( ! rc )); then
+    passo $(( B + 2 )) "comprimindo para caber em $LIM_TXT MB$nota (2ª passada)" 0
+    ff -map 0:v:0 -map '0:a:0?' -vf "$vf" ${=$(venc $v)} $p2 $aud $extra "$out" || rc=1
+  fi
+  while (( ! rc && tentativa < 2 )) && [[ -s $out ]] && (( $(stat -f%z "$out") > alvo_bytes )); do
+    (( tentativa++, PASSOS++ ))
+    v=$(( int(v * 0.9) ))
+    passo $PASSOS "ficou um pouco acima, ajustando para caber em $LIM_TXT MB" 0
+    ff -map 0:v:0 -map '0:a:0?' -vf "$vf" ${=$(venc $v)} $p2 $aud $extra "$out" || rc=1
+  done
+  rm -rf "$tmp"
+  (( rc )) && return 1
+  if (( $(stat -f%z "$out") > alvo_bytes )); then
+    MOTIVO="Não foi possível deixar o vídeo abaixo de $LIM_TXT MB. Tente um limite um pouco maior."
+    return 1
+  fi
+  return 0
 }
 
 # Vídeo HDR (iPhone grava em HLG/Dolby Vision) convertido direto fica com cores lavadas.
@@ -551,11 +726,16 @@ for f in "$@"; do
   ARQ=""; (( total > 1 )) && ARQ="arquivo $i de $total"
   estado "P|-1|$TITULO|Analisando o arquivo…|$ARQ"
 
+  ARQ_ORIGINAL=$f
+  # Com limite de tamanho, confere logo se o vídeo cabe (antes de qualquer passo demorado)
+  if (( LIMITADO )) && ! orcamento_limite "$f"; then
+    (( falhas++ )); continue
+  fi
+
   # Quantos passos este arquivo vai ter
   hdr=0
   [[ $cat_alvo == video && $FORMATO != (MP3|M4A)* ]] && eh_hdr "$f" && hdr=1
-  PASSOS=1
-  (( hdr )) && PASSOS=2
+  PASSOS=$(( 1 + hdr + LIMITADO ))   # HDR: +1 (ajustar cores); limite: +1 (duas passadas)
   if [[ $FORMATO == WebP ]]; then
     [[ ${f:e:l} != (jpg|jpeg|png|tif|tiff|webp) ]] && PASSOS=2
     reduz_imagem "$f" && PASSOS=2
@@ -572,7 +752,7 @@ for f in "$@"; do
     (( PASSOS == 1 )) && passo 1 "$(descricao_conversao)" $PCT_IMG   # com 2 passos, converter() anuncia
   else
     DUR=$(duracao_us "$entrada")
-    passo $PASSOS "$(descricao_conversao)" $(( DUR > 0 ? 0 : -1 ))
+    (( LIMITADO )) || passo $PASSOS "$(descricao_conversao)" $(( DUR > 0 ? 0 : -1 ))   # com limite, converter_limitado anuncia
   fi
 
   if ! cancelado && converter "$entrada" "$out" 2>>"$LOG" && [[ -s $out ]]; then
@@ -594,9 +774,12 @@ elif (( ok == 1 && falhas == 0 )); then
 elif (( ok > 0 && falhas == 0 )); then
   tit="Pronto: $ok arquivos convertidos para $FORMATO"
   det="Salvos ao lado dos originais"
+elif (( ok == 0 && falhas == 1 )) && [[ -n $MOTIVO ]]; then
+  tit="Não foi possível converter"
+  det="$MOTIVO"
 else
   tit="$ok convertido(s), $falhas com erro"
-  det="Detalhes em ~/Library/Logs/Converter.log"
+  det="${MOTIVO:-Detalhes em ~/Library/Logs/Converter.log}"
 fi
 (( pulados )) && det+=" · $pulados ignorado(s)"
 
