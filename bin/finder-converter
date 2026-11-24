@@ -1,0 +1,31 @@
+#!/bin/zsh
+# finder-converter — comando instalado pelo Homebrew.
+#   finder-converter setup      liga a Ação Rápida "Converter…" no Finder (rodar uma vez)
+#   finder-converter remove     tira a ação do Finder
+#   finder-converter --version  mostra a versão
+
+LIBEXEC="${0:A:h:h}/libexec"
+# Caminho estável entre versões: .../Cellar/finder-converter/<versão>/libexec → .../opt/finder-converter/libexec
+OPT_LIBEXEC=$(print -r -- "$LIBEXEC" | sed -E 's#/Cellar/finder-converter/[^/]+/libexec$#/opt/finder-converter/libexec#')
+[[ -d $OPT_LIBEXEC ]] || OPT_LIBEXEC=$LIBEXEC
+
+case $1 in
+  setup|install)
+    CONVERTER_BREW_LIBEXEC="$OPT_LIBEXEC" exec zsh "$LIBEXEC/install.sh" ;;
+  remove|uninstall)
+    exec zsh "$LIBEXEC/uninstall.sh" ;;
+  -v|--version|version)
+    print -r -- "finder-converter $(<"$LIBEXEC/VERSION")" ;;
+  *)
+    cat <<USO
+Uso: finder-converter <comando>
+
+  setup       liga "Converter…" no Finder (botão direito → Ações Rápidas)
+  remove      tira a ação do Finder
+  --version   mostra a versão
+
+Depois do setup, clique com o botão direito em um vídeo, áudio ou imagem
+e escolha Ações Rápidas → Converter…
+USO
+    [[ -z $1 || $1 == (-h|--help|help) ]] ;;
+esac

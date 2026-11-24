@@ -38,11 +38,18 @@ if (( $#faltando )); then
 fi
 verde "ffmpeg, ffprobe e cwebp encontrados"
 
-# 2. Script principal
+# 2. Script principal. Pelo Homebrew vira um atalho para a versão do brew, assim
+#    "brew upgrade" atualiza o Converter sem precisar rodar o setup de novo.
 mkdir -p "$DESTINO"
-cp converter.sh "$DESTINO/converter.sh"
-chmod +x "$DESTINO/converter.sh"
-verde "Script instalado em ~/Library/Application Support/Converter"
+rm -f "$DESTINO/converter.sh"
+if [[ -n $CONVERTER_BREW_LIBEXEC ]]; then
+  ln -s "$CONVERTER_BREW_LIBEXEC/converter.sh" "$DESTINO/converter.sh"
+  verde "Script ligado à versão do Homebrew"
+else
+  cp converter.sh "$DESTINO/converter.sh"
+  chmod +x "$DESTINO/converter.sh"
+  verde "Script instalado em ~/Library/Application Support/Converter"
+fi
 
 # 3. Ação Rápida (remove versões antigas, inclusive a que embutia o script)
 mkdir -p "$SERVICOS"
