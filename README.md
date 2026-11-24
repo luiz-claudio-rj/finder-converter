@@ -15,7 +15,9 @@ Grátis, de código aberto e sem enviar nada para a internet.
 | Áudio (WAV, M4A, AIFF, FLAC, OGG…) | MP3, M4A, WAV, FLAC, OGG |
 | Imagem (HEIC, PNG, JPG, TIFF, WebP…) | JPG, PNG, WebP, HEIC, AVIF, PDF |
 
-- **Tamanho**: vídeo em 4K, 1080p, 720p ou 480p; imagem pelo lado maior (4096 a 512 px). Nunca aumenta um arquivo menor.
+- **Limite de tamanho do arquivo**: 8 MB (Discord), 16 MB (WhatsApp), 25 MB (e-mail), 50 MB, 100 MB ou um valor seu. O vídeo é comprimido em duas passadas para caber no limite; se a taxa ficar baixa demais, a resolução é reduzida sozinha e a janela avisa.
+- **Velocidade Rápida**: usa o codificador de vídeo do chip do Mac (VideoToolbox) em MP4 e MOV. Num M1, foi de 4 a 8 vezes mais rápido nos testes, com arquivo um pouco maior. Se o chip não estiver disponível, segue com a conversão normal.
+- **Resolução / tamanho**: vídeo em 4K, 1080p, 720p ou 480p; imagem pelo lado maior (4096 a 512 px). Nunca aumenta um arquivo menor.
 - **Qualidade**: alta, média ou baixa (arquivo menor). Formatos sem perda (WAV, FLAC, PNG, PDF) usam sempre a máxima.
 - **Vídeo HDR do iPhone**: detecta o HDR e ajusta as cores para SDR com o `avconvert` da Apple antes de converter, para o vídeo não sair lavado. Ignora a trilha de áudio espacial (APAC), que o ffmpeg não lê.
 - **Janela de progresso**: mostra cada passo ("Passo 1 de 2: ajustando as cores"), a porcentagem e o tempo restante, com botão Cancelar.
@@ -25,6 +27,17 @@ Grátis, de código aberto e sem enviar nada para a internet.
 ## Instalar
 
 Requisitos: macOS 13 ou mais novo (testado no macOS 26) e [Homebrew](https://brew.sh/pt-br/).
+
+### Pelo Homebrew (recomendado)
+
+```bash
+brew install luiz-claudio-rj/tap/finder-converter
+finder-converter setup
+```
+
+O `brew install` também instala o ffmpeg e o webp se você ainda não tiver. O `finder-converter setup` liga a ação no Finder e só precisa ser rodado uma vez: depois disso, `brew upgrade` atualiza o Converter sozinho.
+
+### Pelo código
 
 ```bash
 git clone https://github.com/luiz-claudio-rj/finder-converter.git
@@ -42,6 +55,15 @@ Se "Converter…" não aparecer: botão direito em qualquer arquivo → Ações 
 
 ## Desinstalar
 
+Pelo Homebrew:
+
+```bash
+finder-converter remove
+brew uninstall finder-converter
+```
+
+Pelo código:
+
 ```bash
 zsh uninstall.sh
 ```
@@ -56,6 +78,8 @@ Para testar sem abrir as janelas:
 
 ```bash
 SEM_JANELA=1 FORMATO="MP4 (H.264)" TAMANHO="720p (HD)" QUALIDADE="Média" ./converter.sh video.mov
+SEM_JANELA=1 FORMATO="MP4 (H.264)" LIMITE="16 MB" ./converter.sh video.mov
+SEM_JANELA=1 FORMATO="MP4 (H.264)" VELOCIDADE="Rápida" ./converter.sh video.mov
 ```
 
 ## Como funciona
@@ -65,6 +89,8 @@ SEM_JANELA=1 FORMATO="MP4 (H.264)" TAMANHO="720p (HD)" QUALIDADE="Média" ./conv
 | `converter.sh` | Script principal (zsh). Mostra a janela de opções e a de progresso (JavaScript for Automation com Cocoa) e chama `ffmpeg`, `avconvert`, `sips` e `cwebp`. |
 | `workflow/Converter.workflow` | Ação Rápida do Automator que só chama o `converter.sh` instalado. |
 | `install.sh` / `uninstall.sh` | Instalação e remoção. |
+| `bin/finder-converter` | Comando instalado pelo Homebrew (`setup`, `remove`, `--version`). |
+| `VERSION` | Versão atual. A fórmula fica em [luiz-claudio-rj/homebrew-tap](https://github.com/luiz-claudio-rj/homebrew-tap). |
 | `docs/` | Página do projeto (GitHub Pages). |
 
 ## Licença
