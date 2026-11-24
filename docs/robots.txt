@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://luiz-claudio-rj.github.io/finder-converter/sitemap.xml
