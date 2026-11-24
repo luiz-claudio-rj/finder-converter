@@ -311,9 +311,11 @@ h2 { font: 700 clamp(1.9rem, 3.4vw, 2.6rem)/1.1 var(--display); letter-spacing: 
 .qr svg { width: 100%; height: 100%; display: block; }
 .btn-pix { background: #32BCAD; color: #06302C; }   /* verde-água do Pix */
 .btn-pix:hover { background: #4FCABD; }
-.pix-chave { margin: 14px 0 6px; font-size: .9rem; }
-.pix-chave code { font: .85rem ui-monospace, Menlo, monospace; word-break: break-all; color: var(--ink); }
-.pix-nome { font-size: .9rem; margin: 0; }
+.pix-lado { display: grid; gap: 18px; min-width: 0; justify-items: start; }
+.pix-confira p { font-size: .9rem; margin: 0 0 8px; }
+.pix-confira dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: .95rem; }
+.pix-confira dt { color: var(--ink-soft); }
+.pix-confira dd { margin: 0; color: var(--ink); font-weight: 600; }
 
 footer { padding: 40px 0 56px; color: var(--ink-soft); font-size: .95rem; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
@@ -533,10 +535,12 @@ finder-converter setup</code><button class="copiar" type="button" data-copiar="c
       <p>Aponte a câmera do celular ou use o código copia e cola no app do seu banco.</p>
       <div class="pix-corpo">
         <div class="qr" id="pix-qr" role="img" aria-label="QR Code do Pix para apoiar o Converter"></div>
-        <div>
+        <div class="pix-lado">
           <button class="btn btn-pix" type="button" id="pix-copiar">Copiar código Pix</button>
-          <p class="pix-chave">Chave aleatória:<br><code id="pix-chave"></code></p>
-          <p class="pix-nome">Em nome de <span id="pix-nome"></span></p>
+          <div class="pix-confira">
+            <p>Confira na tela do seu banco antes de pagar:</p>
+            <dl id="pix-dados"></dl>
+          </div>
         </div>
       </div>
     </div>
@@ -556,7 +560,11 @@ finder-converter setup</code><button class="copiar" type="button" data-copiar="c
 /* Pix: gera o "copia e cola" (BR Code estático do Banco Central) e o QR Code.
    Sem valor fixo: quem apoia escolhe quanto quer mandar. */
 (() => {
-  const PIX = { chave: 'a25659b7-1c09-4fa6-905a-9b8ecd2c68b1', nome: 'Luiz Claudio', cidade: 'Sao Goncalo' };
+  const PIX = {
+    chave: 'a25659b7-1c09-4fa6-905a-9b8ecd2c68b1', nome: 'Luiz Claudio', cidade: 'Sao Goncalo',
+    // aparece embaixo do QR para a pessoa conferir com a tela do banco dela; vazio = não mostra
+    confira: { 'Nome': 'Luiz Claudio Lessa Vargas Junior', 'Banco': 'Mercado Pago', 'Agência': '0001', 'Conta': '6579229643-4' },
+  };
   const caixa = document.getElementById('pix');
   if (!PIX.chave || !caixa) return;
 
@@ -577,8 +585,14 @@ finder-converter setup</code><button class="copiar" type="button" data-copiar="c
     + campo('62', campo('05', '***')) + '6304';
   const copiaECola = corpo + crc16(corpo);
 
-  document.getElementById('pix-chave').textContent = PIX.chave;
-  document.getElementById('pix-nome').textContent = PIX.nome;
+  // dados que aparecem na tela de confirmação do banco de quem paga
+  const dados = document.getElementById('pix-dados');
+  Object.entries(PIX.confira).filter(([, v]) => v).forEach(([rotulo, valor]) => {
+    const dt = document.createElement('dt'), dd = document.createElement('dd');
+    dt.textContent = rotulo; dd.textContent = valor;
+    dados.append(dt, dd);
+  });
+  if (!dados.children.length) dados.parentElement.hidden = true;
   if (window.qrcode) {
     const qr = qrcode(0, 'M');
     qr.addData(copiaECola);
