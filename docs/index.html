@@ -36,7 +36,7 @@
   "@type": "SoftwareApplication",
   "name": "Converter",
   "alternateName": "finder-converter",
-  "description": "Ação Rápida do Finder que converte vídeo, áudio e imagem com o botão direito no macOS. Escolha formato, tamanho e qualidade; acompanhe cada passo; vídeos HDR do iPhone saem com as cores certas.",
+  "description": "Ação Rápida do Finder e app para Mac que convertem vídeo, áudio e imagem no macOS. Escolha formato, tamanho e qualidade; acompanhe cada passo; vídeos HDR do iPhone saem com as cores certas.",
   "applicationCategory": "MultimediaApplication",
   "operatingSystem": "macOS",
   "inLanguage": "pt-BR",
@@ -56,6 +56,7 @@
     "Reduz vídeo para 4K, 1080p, 720p ou 480p e imagem por pixels",
     "Limite de tamanho do arquivo: 8 MB, 16 MB (WhatsApp), 25 MB (e-mail) ou outro valor",
     "Modo rápido com o codificador de vídeo do chip do Mac",
+    "App para soltar arquivos na janela ou no ícone do Dock",
     "Instalação pelo Homebrew, com o ffmpeg incluído",
     "Três níveis de qualidade",
     "Corrige as cores de vídeos HDR do iPhone",
@@ -77,7 +78,7 @@
     { "@type": "Question", "name": "Como diminuir um vídeo para mandar no WhatsApp?",
       "acceptedAnswer": { "@type": "Answer", "text": "No Converter, escolha MP4 e o limite 16 MB (WhatsApp). O vídeo é comprimido em duas passadas para ficar abaixo de 16 MB; se for longo, a resolução é reduzida automaticamente." } },
     { "@type": "Question", "name": "Como instalar o Converter com o Homebrew?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Rode brew install luiz-claudio-rj/tap/finder-converter. É um comando só: o Homebrew instala o Converter, liga a ação no Finder e instala o ffmpeg junto, se ele ainda não estiver no Mac." } },
+      "acceptedAnswer": { "@type": "Answer", "text": "Rode brew install luiz-claudio-rj/tap/finder-converter. É um comando só: o Homebrew instala o Converter, põe o app em Aplicativos, liga a ação no Finder e instala o ffmpeg junto, se ele ainda não estiver no Mac." } },
     { "@type": "Question", "name": "Funciona em Mac com chip Intel e Apple Silicon?",
       "acceptedAnswer": { "@type": "Answer", "text": "Foi feito para os dois, do macOS 13 Ventura em diante, e testado no macOS 26. Precisa do Homebrew para instalar o ffmpeg; o instalador cuida do resto." } },
     { "@type": "Question", "name": "O arquivo original é alterado?",
@@ -249,6 +250,42 @@ h2 { font: 700 clamp(1.9rem, 3.4vw, 2.6rem)/1.1 var(--display); letter-spacing: 
 .formatos dt { font-weight: 700; }
 .formatos dd { margin: 0 0 10px; color: var(--ink-soft); }
 
+/* ── app ── */
+.app-sec { border-top: 1px solid var(--line); }
+.app-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
+.app-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; }
+.app-lista li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; }
+.app-lista li::before { content: ""; width: 12px; height: 12px; margin-top: 7px; border-radius: 4px; background: var(--c, var(--video)); }
+.app-lista b { display: block; font: 700 1.1rem/1.3 var(--display); }
+.app-lista span { color: var(--ink-soft); }
+.app-win { font-family: var(--system); font-size: 13px; color: #1d1d1f; max-width: 440px; margin-inline: auto; width: 100%; }
+.app-win .titlebar { justify-content: center; position: relative; }
+.app-win .titlebar .lights { position: absolute; left: 14px; display: flex; gap: 8px; }
+.app-win .titlebar b { margin: 0; }
+.app-corpo { padding: 18px 18px 0; }
+.soltar {
+  border: 2px dashed #C9CBD3; border-radius: 14px; background: #FAFAFB;
+  padding: 26px 16px 22px; text-align: center; transition: border-color .15s, background .15s;
+}
+.soltar.sobre { border-color: #0A64D8; background: #EEF4FF; }
+.soltar svg { width: 76px; height: 76px; display: block; margin: 0 auto 10px; }
+.soltar p { margin: 0 0 14px; font-size: 15px; font-weight: 500; }
+.soltar button {
+  font: inherit; padding: 5px 18px; border-radius: 6px; border: 1px solid #0A64D8;
+  background: #0A64D8; color: #fff; cursor: pointer;
+}
+.soltar .ok { font-size: 12px; color: #0A64D8; margin: 10px 0 0; min-height: 1.3em; font-weight: 400; }
+.app-dica { color: #6e6e73; font-size: 12px; text-align: center; margin: 14px 0; }
+.app-rodape { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #E2E2E6; padding: 12px 18px 14px; }
+.app-rodape b { display: block; font-weight: 600; }
+.app-rodape small { color: #6e6e73; font-size: 11px; }
+.app-rodape a {
+  flex: none; text-decoration: none; padding: 4px 12px; border-radius: 6px;
+  border: 1px solid #C8C8CE; background: #fff; color: #1d1d1f;
+}
+.app-rodape a:hover { background: #F2F2F4; }
+.app-legenda { font-size: .85rem; color: var(--ink-soft); text-align: center; margin-top: 14px; }
+
 .hdr { background: var(--surface); border-block: 1px solid var(--line); }
 .hdr-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 56px; align-items: center; }
 .antes-depois { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -271,7 +308,7 @@ h2 { font: 700 clamp(1.9rem, 3.4vw, 2.6rem)/1.1 var(--display); letter-spacing: 
 .instalar { background: var(--desk-deep); color: #fff; }
 .instalar .intro { color: #C2CAE4; }
 .passos { list-style: none; margin: 0; padding: 0; display: grid; gap: 26px; max-width: 760px; counter-reset: p; }
-.passos li { display: grid; grid-template-columns: 44px 1fr; gap: 16px; counter-increment: p; }
+.passos li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 16px; counter-increment: p; }
 .passos li::before {
   content: counter(p); width: 36px; height: 36px; border-radius: 50%;
   display: grid; place-items: center; font: 700 1rem/1 var(--display);
@@ -321,7 +358,7 @@ footer { padding: 40px 0 56px; color: var(--ink-soft); font-size: .95rem; }
 footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
 
 @media (max-width: 900px) {
-  .hero-grid, .hdr-grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero-grid, .hdr-grid, .app-grid { grid-template-columns: 1fr; gap: 40px; }
   .formatos { grid-template-columns: 1fr; }
   .formatos > div + div { padding-left: 0; border-left: 0; border-top: 1px solid var(--line); }
   .porque { grid-template-columns: 1fr; }
@@ -359,6 +396,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
       </a>
       <div class="nav-links">
         <a href="#formatos">Formatos</a>
+        <a href="#app">App</a>
         <a href="#instalar">Instalar</a>
         <a href="#perguntas">Perguntas</a>
         <a class="gh" href="https://github.com/luiz-claudio-rj/finder-converter">GitHub</a>
@@ -372,7 +410,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap hero-grid">
     <div>
       <h1 id="titulo">Botão direito, Converter, pronto.</h1>
-      <p class="lede">Transforme vídeo, áudio e imagem em outro formato sem abrir app nenhum e sem mandar nada para a internet. Grátis para sempre.</p>
+      <p class="lede">Transforme vídeo, áudio e imagem em outro formato direto do Finder, ou soltando na janela do app, sem mandar nada para a internet. Grátis para sempre.</p>
       <div class="cta">
         <a class="btn btn-primary" href="#instalar">Instalar no Mac</a>
         <a class="btn btn-ghost" href="https://github.com/luiz-claudio-rj/finder-converter">
@@ -436,6 +474,39 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
         <ul class="chips"><li>JPG</li><li>PNG</li><li>WebP</li><li>HEIC</li><li>AVIF</li><li>PDF</li></ul>
         <dl><dt>Tamanho</dt><dd>Lado maior de 4096 a 512 px, para mandar foto do iPhone sem pesar.</dd></dl>
       </div>
+    </div>
+  </div>
+</section>
+
+<section class="app-sec" id="app" aria-labelledby="t-app">
+  <div class="wrap app-grid">
+    <div>
+      <h2 id="t-app">Prefere arrastar? Tem app também</h2>
+      <p class="intro">O Homebrew coloca o app Converter em Aplicativos junto com a ação do Finder. Ele abre as mesmas janelas de opções e de progresso.</p>
+      <ul class="app-lista">
+        <li style="--c: var(--video)"><div><b>Solte onde for mais fácil</b><span>Na janela, no ícone do Dock ou pelo Abrir com do Finder. Ou clique em Escolher arquivos.</span></div></li>
+        <li style="--c: var(--audio)"><div><b>Misturou vídeo, áudio e imagem?</b><span>Ele pergunta o formato de cada tipo, um de cada vez, e converte tudo em sequência.</span></div></li>
+        <li style="--c: var(--image)"><div><b>Abre sem aviso da Apple</b><span>O app é montado no seu próprio Mac durante a instalação, então o macOS não pede para liberar nada.</span></div></li>
+      </ul>
+    </div>
+    <div>
+      <div class="mac-window app-win" role="img" aria-label="Janela do app Converter: área para soltar arquivos, botão Escolher arquivos, contador de arquivos convertidos e botão Apoiar o projeto">
+        <div class="titlebar"><span class="lights"><span class="light r"></span><span class="light y"></span><span class="light g"></span></span><b>Converter</b></div>
+        <div class="app-corpo">
+          <div class="soltar" id="soltar">
+            <svg viewBox="0 0 1024 1024" aria-hidden="true"><defs><linearGradient id="gi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2E3F78"/><stop offset="1" stop-color="#1F2B52"/></linearGradient></defs><rect x="100" y="100" width="824" height="824" rx="185" fill="url(#gi)"/><g transform="translate(512 512) scale(27) translate(-16 -16)"><path d="M9 12h11l-3-3M23 20H12l3 3" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
+            <p>Solte vídeos, áudios ou imagens aqui</p>
+            <button type="button" tabindex="-1">Escolher arquivos…</button>
+            <p class="ok" id="soltar-ok" aria-live="polite"></p>
+          </div>
+          <p class="app-dica">Também no Finder: botão direito → Ações Rápidas → Converter…</p>
+        </div>
+        <div class="app-rodape">
+          <div><b>Grátis e de código aberto</b><small>Você já converteu 128 arquivos · v1.4.0</small></div>
+          <a href="#apoie" tabindex="-1">♥ Apoiar o projeto</a>
+        </div>
+      </div>
+      <p class="app-legenda">A janela do app. O contador fica guardado só no seu Mac.</p>
     </div>
   </div>
 </section>
@@ -519,7 +590,7 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
   <div class="wrap apoie-grid">
     <div>
       <h2 id="t-apoie">Apoie o Converter</h2>
-      <p class="intro">O Converter é grátis e vai continuar assim, sem anúncio e sem versão paga. Se ele te poupou tempo, dá para agradecer com o valor que quiser.</p>
+      <p class="intro">O Converter é grátis e vai continuar assim, sem anúncio e sem versão paga. Se ele te poupou tempo, dá para agradecer com o valor que quiser. No app, o botão Apoiar o projeto mostra este mesmo Pix.</p>
       <div class="sponsor">
         <h3>GitHub Sponsors</h3>
         <p>Apoio único ou mensal, de qualquer país, pelo GitHub.</p>
@@ -844,6 +915,22 @@ footer .wrap { display: flex; flex-wrap: wrap; justify-content: space-between; g
     catch { b.textContent = 'Selecione e copie'; }
     setTimeout(() => (b.textContent = 'Copiar'), 1800);
   }));
+})();
+
+// Janela do app: aceita um arquivo arrastado só para mostrar como funciona (nada é lido nem enviado)
+(() => {
+  const area = document.getElementById('soltar'), ok = document.getElementById('soltar-ok');
+  if (!area) return;
+  const fora = () => area.classList.remove('sobre');
+  area.addEventListener('dragover', e => { e.preventDefault(); area.classList.add('sobre'); });
+  area.addEventListener('dragleave', fora);
+  area.addEventListener('drop', e => {
+    e.preventDefault(); fora();
+    const n = e.dataTransfer.files.length;
+    if (!n) return;
+    const nome = n === 1 ? e.dataTransfer.files[0].name : n + ' arquivos';
+    ok.textContent = 'No app, ' + nome + ' abriria a janela de opções.';
+  });
 })();
 </script>
 </body>
