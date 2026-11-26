@@ -25,6 +25,18 @@ categoria() {
   esac
 }
 
+# Vindo do app (CONV_SEPARAR=1), tipos misturados viram uma conversão por tipo, uma depois da outra.
+if [[ -n $CONV_SEPARAR ]]; then
+  unset CONV_SEPARAR
+  grupos=0
+  for c in video audio imagem; do
+    grupo=()
+    for f in "$@"; do [[ $(categoria "$f") == $c ]] && grupo+=("$f"); done
+    (( $#grupo )) && { (( grupos++ )); /bin/zsh "${0:A}" "${grupo[@]}"; }
+  done
+  (( grupos )) && exit 0
+fi
+
 # A categoria do primeiro arquivo reconhecido define as opções.
 cat_alvo=""; primeiro=""
 for f in "$@"; do
@@ -374,7 +386,16 @@ ObjC.registerSubclass({
     } },
     'fechar:': { types: ['void', ['id']], implementation: function (b) { sair(); } },
     'apoiar:': { types: ['void', ['id']], implementation: function (b) {
-      $.NSWorkspace.sharedWorkspace.openURL($.NSURL.URLWithString('https://luiz-claudio-rj.github.io/finder-converter/#apoie'));
+      // com o app instalado, abre o painel Apoie dele; sem o app, a página do projeto
+      const ws = $.NSWorkspace.sharedWorkspace;
+      const appURL = ws.URLForApplicationWithBundleIdentifier('io.github.luiz-claudio-rj.converter');
+      if (!appURL.isNil()) {
+        const pasta = ObjC.unwrap($.NSHomeDirectory()) + '/Library/Application Support/Converter';
+        $('1').writeToFileAtomicallyEncodingError(pasta + '/mostrar-apoie', true, 4, null);
+        ws.openURL(appURL);
+      } else {
+        ws.openURL($.NSURL.URLWithString('https://luiz-claudio-rj.github.io/finder-converter/#apoie'));
+      }
     } },
     'tick:': { types: ['void', ['id']], implementation: function (t) { tick(t); } },
   },
@@ -793,6 +814,13 @@ else
   det="${MOTIVO:-Detalhes em ~/Library/Logs/Converter.log}"
 fi
 (( pulados )) && det+=" · $pulados ignorado(s)"
+
+# Total de arquivos convertidos neste Mac, mostrado na janela do app. Não sai daqui.
+if (( ok )); then
+  antes=0; [[ -s "$PREFS/total" ]] && antes=$(<"$PREFS/total")
+  [[ $antes == <-> ]] || antes=0
+  mkdir -p "$PREFS" && print -r -- $(( antes + ok )) > "$PREFS/total"
+fi
 
 terminou=1
 if [[ -n $SEM_JANELA ]]; then

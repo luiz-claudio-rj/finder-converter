@@ -1,6 +1,6 @@
 cask "finder-converter" do
-  version "1.3.0"
-  sha256 "a11b91dd824a7398eef42aca5fc0b94d9820bed5a5cf046fb3bd1c674fc3a01d"
+  version "1.4.0"
+  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
 
   url "https://github.com/luiz-claudio-rj/finder-converter/archive/refs/tags/v#{version}.tar.gz"
   name "Converter"
@@ -15,6 +15,7 @@ cask "finder-converter" do
   depends_on formula: ["ffmpeg", "webp"]
   depends_on macos: :ventura
 
+  app "finder-converter-#{version}/Converter.app"
   binary "finder-converter-#{version}/bin/finder-converter"
   service "finder-converter-#{version}/workflow/Converter.workflow"
 
@@ -26,6 +27,8 @@ cask "finder-converter" do
          source_base: :staged_path, target_base: :staged_path
     set_permissions "finder-converter-#{version}/workflow/Converter.workflow/Contents/Resources/converter.sh",
                     "0755", base: :staged_path
+    # Builds the app locally with osacompile, which ships with macOS
+    run "/bin/zsh", args: ["app/montar.sh", "Converter.app"], chdir: "finder-converter-{{version}}"
   end
 
   # Enables "Converter…" in the Finder context menu and Quick Actions
@@ -49,6 +52,8 @@ cask "finder-converter" do
     terminate_process "Finder"
   end
 
+  uninstall quit: "io.github.luiz-claudio-rj.converter"
+
   zap trash: [
     "~/Library/Application Support/Converter",
     "~/Library/Logs/Converter.log",
@@ -56,5 +61,6 @@ cask "finder-converter" do
 
   caveats <<~EOS
     In Finder: right-click a video, audio or image file → Quick Actions → Converter…
+    Or open the Converter app and drop files on its window.
   EOS
 end

@@ -49,6 +49,11 @@ chmod +x "$SERVICOS/Converter.workflow/Contents/Resources/converter.sh"
 rm -f "$DESTINO/converter.sh"   # as preferências da janela continuam em $DESTINO
 verde "Ação Rápida instalada em ~/Library/Services/Converter.workflow"
 
+# 2b. O app (janela para soltar arquivos), em /Applications ou, sem permissão, em ~/Applications
+APPS=/Applications; [[ -w $APPS ]] || { APPS="$HOME/Applications"; mkdir -p "$APPS"; }
+osascript -e 'tell application id "io.github.luiz-claudio-rj.converter" to quit' >/dev/null 2>&1 || true
+zsh app/montar.sh "$APPS/Converter.app"
+verde "App instalado em $APPS/Converter.app"
 
 # 3. Liga a ação no menu de contexto e nas Ações Rápidas do Finder
 defaults write pbs NSServicesStatus -dict-add "\"$CHAVE\"" \
@@ -66,6 +71,6 @@ verde "Finder reiniciado"
 
 echo
 print -P "%BPronto!%b Clique com o botão direito em um vídeo, áudio ou imagem e escolha"
-print -P "%BAções Rápidas → Converter…%b"
+print -P "%BAções Rápidas → Converter…%b, ou abra o app %BConverter%b e solte os arquivos na janela."
 echo
 echo "Se não aparecer: botão direito → Ações Rápidas → Personalizar… e ligue \"Converter…\"."

@@ -6,6 +6,12 @@ CHAVE="(null) - Converter… - runWorkflowAsService"
 
 rm -rf "$HOME/Library/Services/Converter.workflow" "$HOME/Library/Services/Converter….workflow"
 rm -rf "$HOME/Library/Application Support/Converter"
+for app in /Applications/Converter.app "$HOME/Applications/Converter.app"; do
+  # só apaga se for mesmo o nosso app
+  [[ $(defaults read "$app/Contents/Info" CFBundleIdentifier 2>/dev/null) == io.github.luiz-claudio-rj.converter ]] || continue
+  osascript -e 'tell application id "io.github.luiz-claudio-rj.converter" to quit' >/dev/null 2>&1
+  rm -rf "$app"
+done
 # tira o "ligado" da ação (passa pelo defaults para o macOS não sobrescrever a mudança)
 TMP=$(mktemp -t converter-pbs).plist
 if defaults export pbs "$TMP" 2>/dev/null \
