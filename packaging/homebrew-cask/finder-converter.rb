@@ -1,6 +1,6 @@
 cask "finder-converter" do
   version "1.4.0"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000"
+  sha256 "051f9af2ee79764cfc79157edb8d4286a666dc4f20dd64a93db09b9af5426ec2"
 
   url "https://github.com/luiz-claudio-rj/finder-converter/archive/refs/tags/v#{version}.tar.gz"
   name "Converter"
