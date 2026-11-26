@@ -29,7 +29,7 @@ intervenção, e ficam explicados nos comentários do cask. Cumprir as regras n�
 
 1. Atualize o cask `finder-converter.rb` desta pasta para a versão mais recente:
    ```bash
-   V=1.3.0   # versão atual
+   V=1.4.0   # versão atual
    SHA=$(curl -sL https://github.com/luiz-claudio-rj/finder-converter/archive/refs/tags/v$V.tar.gz | shasum -a 256 | cut -d' ' -f1)
    sed -i '' "s|version \".*\"|version \"$V\"|; s|sha256 \".*\"|sha256 \"$SHA\"|" finder-converter.rb
    ```
@@ -45,6 +45,6 @@ intervenção, e ficam explicados nos comentários do cask. Cumprir as regras n�
    ```
 3. Faça um fork de [Homebrew/homebrew-cask](https://github.com/Homebrew/homebrew-cask) com a conta
    `luiz-claudio-rj`, copie o cask para `Casks/f/finder-converter.rb` e abra o pull request
-   com o título `finder-converter 1.3.0 (new cask)`.
+   com o título `finder-converter 1.4.0 (new cask)`.
 4. Se for aceito, troque nos READMEs e na página `brew install luiz-claudio-rj/tap/finder-converter`
    por `brew install --cask finder-converter`, e mantenha o tap só para quem já instalou por ele.
