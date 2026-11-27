@@ -103,4 +103,4 @@ O Converter é grátis e vai continuar assim. Se ele te ajudou, você pode agrad
 
 ## Licença
 
-[MIT](LICENSE). Usa [FFmpeg](https://ffmpeg.org) e [libwebp](https://developers.google.com/speed/webp), instalados pelo Homebrew. Não é afiliado à Apple.
+Feito por [Luiz Claudio](https://oluiz.dev). [MIT](LICENSE). Usa [FFmpeg](https://ffmpeg.org) e [libwebp](https://developers.google.com/speed/webp), instalados pelo Homebrew. Não é afiliado à Apple.
